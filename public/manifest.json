@@ -1,0 +1,63 @@
+{
+  "name": "SmartyPants-AI Academic Assistant",
+  "short_name": "SmartyPants-AI",
+  "description": "Your 24/7 Learning Companion for Academic Excellence and ROTC Preparation",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#2c0e37",
+  "theme_color": "#1e3a8a",
+  "orientation": "portrait-primary",
+  "categories": ["education", "productivity", "utilities"],
+  "lang": "en-US",
+  "icons": [
+    {
+      "src": "https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=192",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=512",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=1280",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "SmartyPants-AI Academic Assistant"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Get Tutoring Help",
+      "short_name": "Tutoring",
+      "description": "Get instant tutoring help",
+      "url": "/?help=tutoring",
+      "icons": [
+        {
+          "src": "https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=96",
+          "sizes": "96x96",
+          "type": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "name": "Write Essay",
+      "short_name": "Essay",
+      "description": "Get essay writing help",
+      "url": "/?help=essay",
+      "icons": [
+        {
+          "src": "https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=96",
+          "sizes": "96x96",
+          "type": "image/jpeg"
+        }
+      ]
+    }
+  ]
+}

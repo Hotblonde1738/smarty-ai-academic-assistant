@@ -1,0 +1,61 @@
+[build]
+  publish = "public"
+  command = "echo 'Building SmartyPants-AI...'"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# Function configuration
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Enhanced headers to prevent cross-origin blocking
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+    Cross-Origin-Embedder-Policy = "unsafe-none"
+    Cross-Origin-Opener-Policy = "same-origin-allow-popups"
+    Cross-Origin-Resource-Policy = "cross-origin"
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization, X-Requested-With, Accept, Origin"
+
+# Specific headers for function endpoints
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization, X-Requested-With, Accept, Origin"
+    Access-Control-Max-Age = "86400"
+    Cross-Origin-Embedder-Policy = "unsafe-none"
+    Cross-Origin-Resource-Policy = "cross-origin"
+    Cross-Origin-Opener-Policy = "same-origin-allow-popups"
+
+# Function redirects
+[[redirects]]
+  from = "/ask"
+  to = "/.netlify/functions/ask"
+  status = 200
+
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/health"
+  status = 200
+
+[[redirects]]
+  from = "/upload-syllabus"
+  to = "/.netlify/functions/upload-syllabus"
+  status = 200
+
+# SPA routing - must be last
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

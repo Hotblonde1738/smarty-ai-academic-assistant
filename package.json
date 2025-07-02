@@ -1,0 +1,27 @@
+{
+  "name": "smartypants-ai-netlify",
+  "version": "2.0.0",
+  "description": "SmartyPants-AI Academic Assistant for Netlify",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "build": "echo 'Static site ready for deployment'"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "openai": "^4.28.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "ai",
+    "education",
+    "tutoring",
+    "academic-assistant",
+    "netlify"
+  ],
+  "author": "SmartyPants-AI",
+  "license": "MIT"
+}
