@@ -49,6 +49,9 @@ class UIController {
   async init() {
     console.log("🚀 Initializing UI Controller...");
 
+    // Wait for syllabus service to be available and initialized
+    await this.waitForSyllabusService();
+
     // Initialize syllabus service
     this.syllabusService = window.syllabusService;
     if (this.syllabusService) {
@@ -67,6 +70,14 @@ class UIController {
     this.setupEventListeners();
     this.setupPWAInstall();
 
+    // Listen for syllabus service ready event
+    window.addEventListener("syllabusServiceReady", async (event) => {
+      console.log("📚 Syllabus service ready event received in UI controller");
+      if (this.syllabusService) {
+        await this.loadSyllabiFromService();
+      }
+    });
+
     // Check for existing subscription
     await this.checkExistingSubscription();
 
@@ -76,13 +87,65 @@ class UIController {
     console.log("✅ UI Controller initialized");
   }
 
+  // Wait for syllabus service to be available and initialized
+  async waitForSyllabusService() {
+    console.log("⏳ Waiting for syllabus service to be ready...");
+
+    // Wait for syllabus service to be created
+    let attempts = 0;
+    const maxAttempts = 50; // 5 seconds max wait
+
+    while (!window.syllabusService && attempts < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      attempts++;
+    }
+
+    if (!window.syllabusService) {
+      console.warn("⚠️ Syllabus service not found after waiting");
+      return;
+    }
+
+    // Wait for syllabus service to finish initialization
+    if (!window.syllabusService.isInitialized) {
+      console.log("⏳ Waiting for syllabus service initialization...");
+
+      return new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+          console.warn("⚠️ Syllabus service initialization timeout");
+          resolve();
+        }, 5000); // 5 second timeout
+
+        window.addEventListener(
+          "syllabusServiceReady",
+          (event) => {
+            clearTimeout(timeout);
+            console.log(
+              "✅ Syllabus service ready event received:",
+              event.detail
+            );
+            resolve();
+          },
+          { once: true }
+        );
+      });
+    } else {
+      console.log("✅ Syllabus service already initialized");
+    }
+  }
+
   // Load syllabi from the unified syllabus service
   async loadSyllabiFromService() {
     console.log("📚 Loading syllabi from service...");
 
     if (this.syllabusService) {
       try {
-        // Get all syllabi from service (no need to refresh since upload already adds to collection)
+        // Ensure service is ready
+        if (!this.syllabusService.isReady()) {
+          console.log("⏳ Syllabus service not ready, waiting...");
+          await this.waitForSyllabusService();
+        }
+
+        // Get all syllabi from service
         const syllabi = this.syllabusService.getAllSyllabi();
         console.log("📋 Service syllabi:", syllabi);
 
@@ -103,10 +166,17 @@ class UIController {
       } catch (error) {
         console.error("❌ Failed to load syllabi:", error);
         // Fallback to basic loading
-        const syllabi = this.syllabusService.getAllSyllabi();
-        this.sidebarState.syllabi = syllabi;
-        this.updateSyllabusList();
-        this.updateSidebarState();
+        try {
+          const syllabi = this.syllabusService.getAllSyllabi();
+          this.sidebarState.syllabi = syllabi;
+          this.updateSyllabusList();
+          this.updateSidebarState();
+        } catch (fallbackError) {
+          console.error("❌ Fallback loading also failed:", fallbackError);
+          this.sidebarState.syllabi = [];
+          this.updateSyllabusList();
+          this.updateSidebarState();
+        }
       }
     } else {
       console.warn("⚠️ Syllabus service not available");
@@ -1325,5 +1395,29 @@ window.debugSyllabusStorage = () => {
     }
   } else {
     console.log("❌ Syllabus service not available");
+  }
+};
+
+window.debugInitializationOrder = () => {
+  console.log("🔍 Debug: Initialization order check...");
+  console.log("📚 Syllabus service:", {
+    exists: !!window.syllabusService,
+    isInitialized: window.syllabusService?.isInitialized,
+    isReady: window.syllabusService?.isReady(),
+    syllabiCount: window.syllabusService?.getAllSyllabi()?.length || 0,
+  });
+  console.log("🎮 UI Controller:", {
+    exists: !!window.uiController,
+    syllabiCount: window.uiController?.sidebarState?.syllabi?.length || 0,
+  });
+};
+
+window.forceRefreshSyllabi = async () => {
+  console.log("🔄 Force refreshing syllabi display...");
+  if (window.uiController && window.uiController.syllabusService) {
+    await window.uiController.loadSyllabiFromService();
+    console.log("✅ Syllabi display refreshed");
+  } else {
+    console.log("❌ UI Controller or Syllabus service not available");
   }
 };

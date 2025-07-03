@@ -20,6 +20,9 @@ class SyllabusService {
 
     // Initialize storage mode detection
     this.detectStorageMode();
+
+    // Initialization state
+    this.isInitialized = false;
   }
 
   // Detect if user is authenticated and set storage mode
@@ -684,9 +687,34 @@ class SyllabusService {
   }
 
   // Initialize service
-  init() {
+  async init() {
+    console.log("🔄 Initializing syllabus service...");
     this.loadSyllabi();
-    console.log("✅ Syllabus service initialized");
+
+    // If authenticated, also load from database
+    if (this.isAuthenticated) {
+      await this.loadSyllabiFromDatabase();
+    }
+
+    console.log(
+      "✅ Syllabus service initialized with",
+      this.uploadedSyllabi.length,
+      "syllabi"
+    );
+
+    // Signal that initialization is complete
+    this.isInitialized = true;
+
+    // Dispatch custom event for other components to listen to
+    window.dispatchEvent(
+      new CustomEvent("syllabusServiceReady", {
+        detail: {
+          syllabiCount: this.uploadedSyllabi.length,
+          storageMode: this.storageMode,
+          isAuthenticated: this.isAuthenticated,
+        },
+      })
+    );
   }
 
   // Refresh syllabi from all sources
@@ -722,7 +750,13 @@ class SyllabusService {
       isAuthenticated: this.isAuthenticated,
       sessionId: this.sessionId,
       userId: this.userId,
+      isInitialized: this.isInitialized,
     };
+  }
+
+  // Check if service is ready
+  isReady() {
+    return this.isInitialized && this.uploadedSyllabi !== undefined;
   }
 
   // Debug function to check localStorage directly
@@ -778,9 +812,9 @@ console.log("🔧 Creating syllabus service instance...");
 window.syllabusService = new SyllabusService();
 
 // Initialize when page loads
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   console.log("📚 Initializing syllabus service on DOM ready...");
-  window.syllabusService.init();
+  await window.syllabusService.init();
 });
 
 console.log("✅ SYLLABUS SERVICE LOADED SUCCESSFULLY!");
