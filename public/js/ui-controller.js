@@ -46,44 +46,70 @@ class UIController {
     this.init();
   }
 
-  init() {
-    console.log("🎮 Initializing UI Controller...");
+  async init() {
+    console.log("🚀 Initializing UI Controller...");
 
-    try {
-      this.setupEventListeners();
-      this.setupNavigationButtons();
-      this.setupPaymentButtons();
-      this.setupChatInterface();
-      this.setupSyllabusUpload();
-      this.setupDemoMode();
-      this.setupSidebar(); // New sidebar setup
-
-      // Check for existing subscription
-      this.checkExistingSubscription();
-
-      // Load syllabi from service
-      this.loadSyllabiFromService();
-
-      console.log("✅ UI Controller initialized successfully");
-    } catch (error) {
-      console.error("❌ UI Controller initialization failed:", error);
+    // Initialize syllabus service
+    this.syllabusService = window.syllabusService;
+    if (this.syllabusService) {
+      console.log("✅ Syllabus service found");
+      await this.loadSyllabiFromService();
+    } else {
+      console.warn("⚠️ Syllabus service not found");
     }
+
+    // Setup UI components
+    this.setupSidebar();
+    this.setupNavigationButtons();
+    this.setupPaymentButtons();
+    this.setupChatInterface();
+    this.setupFormDropdowns();
+    this.setupEventListeners();
+    this.setupPWAInstall();
+
+    // Check for existing subscription
+    await this.checkExistingSubscription();
+
+    // Set initial state
+    this.setState("landing");
+
+    console.log("✅ UI Controller initialized");
   }
 
   // Load syllabi from the unified syllabus service
-  loadSyllabiFromService() {
+  async loadSyllabiFromService() {
+    console.log("📚 Loading syllabi from service...");
+
     if (this.syllabusService) {
-      const syllabi = this.syllabusService.getAllSyllabi();
-      this.sidebarState.syllabi = syllabi;
+      try {
+        // Get all syllabi from service (no need to refresh since upload already adds to collection)
+        const syllabi = this.syllabusService.getAllSyllabi();
+        console.log("📋 Service syllabi:", syllabi);
 
-      // Set active syllabus
-      const activeSyllabus = this.syllabusService.getActiveSyllabus();
-      this.sidebarState.activeSyllabus = activeSyllabus
-        ? activeSyllabus.id
-        : null;
+        // Update sidebar state
+        this.sidebarState.syllabi = syllabi;
 
-      this.updateSyllabusList();
-      console.log(`📚 Loaded ${syllabi.length} syllabi from service`);
+        // Update the active syllabus
+        const activeSyllabus = this.syllabusService.getActiveSyllabus();
+        this.sidebarState.activeSyllabus = activeSyllabus
+          ? activeSyllabus.id
+          : null;
+
+        // Update the UI
+        this.updateSyllabusList();
+        this.updateSidebarState();
+
+        console.log("✅ Syllabi loaded and UI updated");
+      } catch (error) {
+        console.error("❌ Failed to load syllabi:", error);
+        // Fallback to basic loading
+        const syllabi = this.syllabusService.getAllSyllabi();
+        this.sidebarState.syllabi = syllabi;
+        this.updateSyllabusList();
+        this.updateSidebarState();
+      }
+    } else {
+      console.warn("⚠️ Syllabus service not available");
     }
   }
 
@@ -185,7 +211,7 @@ class UIController {
     }
   }
 
-  handleLogin() {
+  async handleLogin() {
     console.log("🔐 Mock login process...");
 
     // Mock login - in real app, this would show login modal
@@ -200,13 +226,13 @@ class UIController {
     }
 
     this.updateSidebarState();
-    this.loadSyllabiFromService();
+    await this.loadSyllabiFromService();
 
     // Show success message
     this.showSuccess("Successfully logged in!");
   }
 
-  handleRegister() {
+  async handleRegister() {
     console.log("📝 Mock registration process...");
 
     // Mock registration - in real app, this would show registration modal
@@ -223,13 +249,13 @@ class UIController {
     }
 
     this.updateSidebarState();
-    this.loadSyllabiFromService();
+    await this.loadSyllabiFromService();
 
     // Show success message
     this.showSuccess("Successfully registered and logged in!");
   }
 
-  handleLogout() {
+  async handleLogout() {
     console.log("🚪 Logging out...");
 
     this.sidebarState.isLoggedIn = false;
@@ -240,7 +266,7 @@ class UIController {
     }
 
     this.updateSidebarState();
-    this.loadSyllabiFromService();
+    await this.loadSyllabiFromService();
 
     // Show success message
     this.showSuccess("Successfully logged out!");
@@ -273,7 +299,7 @@ class UIController {
     this.showSuccess(`Starting ${action} session...`);
   }
 
-  toggleSyllabus(syllabusId) {
+  async toggleSyllabus(syllabusId) {
     console.log(`📚 Toggling syllabus: ${syllabusId}`);
 
     try {
@@ -283,7 +309,7 @@ class UIController {
 
         // Update local state
         this.sidebarState.activeSyllabus = syllabusId;
-        this.loadSyllabiFromService();
+        await this.loadSyllabiFromService();
 
         // Show success message
         const syllabus = this.syllabusService.getSyllabusById(syllabusId);
@@ -418,22 +444,15 @@ class UIController {
   uploadSyllabus() {
     console.log("📤 Starting syllabus upload...");
 
-    // Create a simple, visible file input
+    // Create a hidden file input
     const fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.accept = ".pdf,.doc,.docx";
     fileInput.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 10000;
-      background: white;
-      padding: 20px;
-      border: 2px solid #1e3a8a;
-      border-radius: 10px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      font-size: 16px;
+      position: absolute;
+      left: -9999px;
+      opacity: 0;
+      pointer-events: none;
     `;
 
     // Add change event listener
@@ -510,7 +529,7 @@ class UIController {
 
       if (uploadResult.success) {
         // Reload syllabi from service
-        this.loadSyllabiFromService();
+        await this.loadSyllabiFromService();
 
         this.showSuccess(
           `Syllabus "${uploadResult.syllabus.filename}" uploaded successfully!`
@@ -518,6 +537,38 @@ class UIController {
 
         console.log("✅ Upload completed successfully");
       } else {
+        // Handle duplicate file case
+        if (uploadResult.isDuplicate) {
+          const shouldReplace = confirm(
+            `${uploadResult.error}\n\nWould you like to replace the existing file?`
+          );
+
+          if (shouldReplace) {
+            // Remove existing file and retry upload
+            if (uploadResult.existingFile) {
+              await this.syllabusService.removeSyllabus(
+                uploadResult.existingFile.id
+              );
+              // Retry upload
+              const retryResult = await this.syllabusService.uploadSyllabus(
+                file
+              );
+              if (retryResult.success) {
+                await this.loadSyllabiFromService();
+                this.showSuccess(
+                  `Syllabus "${retryResult.syllabus.filename}" replaced successfully!`
+                );
+                return;
+              } else {
+                throw new Error(retryResult.error || "Failed to replace file");
+              }
+            }
+          } else {
+            this.showError("Upload cancelled by user");
+            return;
+          }
+        }
+
         throw new Error(uploadResult.error || "Upload failed");
       }
     } catch (error) {
@@ -541,7 +592,7 @@ class UIController {
         const result = await this.syllabusService.removeSyllabus(syllabusId);
 
         // Reload syllabi from service
-        this.loadSyllabiFromService();
+        await this.loadSyllabiFromService();
 
         this.showSuccess(`Syllabus removed successfully`);
       }
@@ -553,7 +604,7 @@ class UIController {
 
   // ===== EXISTING METHODS (Updated) =====
 
-  checkExistingSubscription() {
+  async checkExistingSubscription() {
     try {
       const subscriptionData = localStorage.getItem("smartypants_subscription");
       if (subscriptionData) {
@@ -582,7 +633,7 @@ class UIController {
           }
 
           this.updateSidebarState();
-          this.loadSyllabiFromService();
+          await this.loadSyllabiFromService();
 
           this.setState("chat");
         }
@@ -1084,34 +1135,6 @@ class UIController {
     `;
   }
 
-  // ===== SYLLABUS UPLOAD (Updated) =====
-
-  setupSyllabusUpload() {
-    const uploadButton = document.querySelector(".upload-button");
-    if (uploadButton) {
-      uploadButton.addEventListener("click", () => this.uploadSyllabus());
-    }
-
-    // Also set up the existing file input to work with the sidebar upload
-    const existingFileInput = document.getElementById("syllabusFile");
-    if (existingFileInput) {
-      existingFileInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          console.log("📁 File selected from existing input:", file.name);
-          this.processSyllabusUpload(file);
-        }
-      });
-    }
-  }
-
-  // ===== DEMO MODE =====
-
-  setupDemoMode() {
-    // Demo mode is handled in startDemo()
-    console.log("🎯 Demo mode setup complete");
-  }
-
   // ===== UTILITY METHODS =====
 
   showLoading(message = "Processing...") {
@@ -1285,5 +1308,22 @@ window.testFileUpload = () => {
     window.uiController.uploadSyllabus();
   } else {
     console.log("❌ UI controller not available");
+  }
+};
+
+window.debugSyllabusStorage = () => {
+  console.log("🔍 Debug: Syllabus storage status...");
+  if (window.syllabusService) {
+    const debugInfo = window.syllabusService.debugLocalStorage();
+    console.log("📊 Debug info:", debugInfo);
+
+    if (window.uiController) {
+      console.log(
+        "📋 UI Controller syllabi:",
+        window.uiController.sidebarState.syllabi
+      );
+    }
+  } else {
+    console.log("❌ Syllabus service not available");
   }
 };
