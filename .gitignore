@@ -1,6 +1,9 @@
 # Node modules
 node_modules/
 
+# Un-tracked helpers (sql,notes,etc)
+_untracked-helpers/
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

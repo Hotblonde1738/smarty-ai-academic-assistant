@@ -118,17 +118,25 @@ class SyllabusService {
     try {
       console.log("🔄 Attempting database upload...");
 
-      // For now, we'll send a JSON payload instead of FormData
-      // This is simpler and works better with Netlify functions
+      // Convert file to base64 for upload
+      const fileData = await this.fileToBase64(syllabus.file);
+
       const uploadData = {
         userId: this.userId || "anonymous",
         filename: syllabus.filename,
-        metadata: JSON.stringify(syllabus.metadata),
+        fileData: fileData,
         fileSize: syllabus.size,
         fileType: syllabus.type,
+        metadata: syllabus.metadata,
       };
 
-      console.log("📤 Upload data:", uploadData);
+      console.log("📤 Upload data:", {
+        userId: uploadData.userId,
+        filename: uploadData.filename,
+        fileSize: uploadData.fileSize,
+        fileType: uploadData.fileType,
+        metadata: uploadData.metadata,
+      });
 
       const response = await fetch("/.netlify/functions/upload-syllabus", {
         method: "POST",
@@ -540,6 +548,17 @@ class SyllabusService {
       "-" +
       Math.random().toString(36).substr(2, 9).toUpperCase()
     );
+  }
+
+  // Convert file to base64
+  fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () =>
+        reject(new Error("Failed to convert file to base64"));
+      reader.readAsDataURL(file);
+    });
   }
 
   // Validate syllabus data structure

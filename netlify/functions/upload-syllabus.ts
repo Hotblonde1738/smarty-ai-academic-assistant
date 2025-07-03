@@ -1,9 +1,30 @@
 import { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
+import {
+  supabase,
+  SyllabusRecord,
+  STORAGE_BUCKET,
+  MAX_FILE_SIZE,
+  ALLOWED_FILE_TYPES,
+} from "./supabase-client";
+
+interface UploadRequest {
+  userId: string;
+  filename: string;
+  fileData: string; // Base64 encoded file
+  fileType: string;
+  fileSize: number;
+  metadata?: {
+    pages?: number;
+    wordCount?: number;
+    extractedText?: string;
+    subject?: string;
+  };
+}
 
 interface UploadResponse {
   id: string;
   filename: string;
-  url?: string;
+  url: string;
   message: string;
   timestamp: string;
   metadata?: {
@@ -58,72 +79,129 @@ export const handler: Handler = async (
   }
 
   try {
-    // Check content type
-    const contentType = event.headers["content-type"] || "";
-    console.log("📋 Content-Type:", contentType);
+    // Parse request body
+    const body = event.isBase64Encoded
+      ? Buffer.from(event.body!, "base64").toString("utf-8")
+      : event.body!;
 
-    if (!contentType.includes("multipart/form-data")) {
-      console.warn("⚠️ Expected multipart/form-data, got:", contentType);
+    const requestData: UploadRequest = JSON.parse(body);
+    console.log("📋 Request data:", {
+      userId: requestData.userId,
+      filename: requestData.filename,
+      fileType: requestData.fileType,
+      fileSize: requestData.fileSize,
+    });
+
+    // Validate file
+    if (requestData.fileSize > MAX_FILE_SIZE) {
+      throw new Error(
+        `File size exceeds ${MAX_FILE_SIZE / (1024 * 1024)}MB limit`
+      );
     }
 
-    // Parse multipart form data
-    let formData: any = {};
-    let fileData: any = null;
-
-    if (event.body) {
-      try {
-        // For now, we'll handle this as a simple JSON upload
-        // In a real implementation, you'd use a multipart parser
-        const body = event.isBase64Encoded
-          ? Buffer.from(event.body, "base64").toString("utf-8")
-          : event.body;
-
-        console.log("📄 Body preview:", body.substring(0, 200) + "...");
-
-        // Try to parse as JSON first
-        try {
-          formData = JSON.parse(body);
-          console.log("✅ Parsed as JSON:", Object.keys(formData));
-        } catch (jsonError) {
-          console.log("⚠️ Not JSON, treating as form data");
-          // For multipart data, we'd need a proper parser
-          // For now, we'll create a mock response
-        }
-      } catch (parseError) {
-        console.error("❌ Failed to parse request body:", parseError);
-        throw new Error("Invalid request format");
-      }
+    if (!ALLOWED_FILE_TYPES.includes(requestData.fileType)) {
+      throw new Error(
+        "Invalid file type. Only PDF and Word documents are allowed"
+      );
     }
 
-    // Extract data
-    const userId = formData.userId || "anonymous";
-    const metadata = formData.metadata ? JSON.parse(formData.metadata) : {};
-    const filename = formData.filename || "uploaded-syllabus.pdf";
+    // Generate unique filename
+    const fileExtension = requestData.filename.split(".").pop();
+    const uniqueFilename = `${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}.${fileExtension}`;
+    const filePath = `${requestData.userId}/${uniqueFilename}`;
 
-    console.log("📋 Extracted data:", { userId, filename, metadata });
+    console.log("📁 File path:", filePath);
 
-    // Generate a unique ID for the syllabus
+    // Convert base64 to buffer
+    const fileBuffer = Buffer.from(
+      requestData.fileData.split(",")[1],
+      "base64"
+    );
+
+    // Upload file to Supabase Storage
+    console.log("📤 Uploading file to Supabase Storage...");
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(filePath, fileBuffer, {
+        contentType: requestData.fileType,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error("❌ Storage upload error:", uploadError);
+      throw new Error(`File upload failed: ${uploadError.message}`);
+    }
+
+    console.log("✅ File uploaded to storage:", uploadData);
+
+    // Get public URL for the uploaded file
+    const { data: urlData } = supabase.storage
+      .from(STORAGE_BUCKET)
+      .getPublicUrl(filePath);
+
+    const publicUrl = urlData.publicUrl;
+    console.log("🔗 Public URL:", publicUrl);
+
+    // Create database record
     const syllabusId = `syl_${Date.now()}_${Math.random()
       .toString(36)
       .substr(2, 9)}`;
+    const now = new Date().toISOString();
 
-    // For now, simulate successful upload since actual file storage
-    // would require additional setup (S3, etc.)
-    const uploadResponse: UploadResponse = {
+    const syllabusRecord: Omit<SyllabusRecord, "created_at" | "updated_at"> = {
       id: syllabusId,
-      filename: filename,
-      url: `https://api.getsmartyai.space/syllabi/${syllabusId}`, // Mock URL
-      message: "Syllabus uploaded successfully!",
-      timestamp: new Date().toISOString(),
+      user_id: requestData.userId,
+      filename: uniqueFilename,
+      original_name: requestData.filename,
+      file_size: requestData.fileSize,
+      file_type: requestData.fileType,
+      file_url: publicUrl,
+      upload_date: now,
+      last_modified: now,
+      status: "inactive",
       metadata: {
-        pages: metadata.pages || null,
-        wordCount: metadata.wordCount || null,
-        extractedText: metadata.extractedText || null,
-        subject: metadata.subject || "general",
+        pages: requestData.metadata?.pages || undefined,
+        word_count: requestData.metadata?.wordCount || undefined,
+        extracted_text: requestData.metadata?.extractedText || undefined,
+        subject: requestData.metadata?.subject || "general",
       },
     };
 
-    console.log(`✅ Syllabus uploaded: ${syllabusId} for user: ${userId}`);
+    console.log("💾 Saving to database...");
+    const { data: dbData, error: dbError } = await supabase
+      .from("syllabi")
+      .insert([syllabusRecord])
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error("❌ Database error:", dbError);
+      // Try to clean up the uploaded file
+      await supabase.storage.from(STORAGE_BUCKET).remove([filePath]);
+      throw new Error(`Database save failed: ${dbError.message}`);
+    }
+
+    console.log("✅ Database record created:", dbData);
+
+    const uploadResponse: UploadResponse = {
+      id: syllabusId,
+      filename: requestData.filename,
+      url: publicUrl,
+      message: "Syllabus uploaded successfully!",
+      timestamp: now,
+      metadata: {
+        pages: requestData.metadata?.pages || undefined,
+        wordCount: requestData.metadata?.wordCount || undefined,
+        extractedText: requestData.metadata?.extractedText || undefined,
+        subject: requestData.metadata?.subject || "general",
+      },
+    };
+
+    console.log(
+      `✅ Syllabus uploaded successfully: ${syllabusId} for user: ${requestData.userId}`
+    );
     console.log("📤 Response:", uploadResponse);
 
     return {

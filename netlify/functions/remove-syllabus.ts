@@ -1,20 +1,20 @@
 import { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
+import { supabase, STORAGE_BUCKET } from "./supabase-client";
+
+interface RemoveRequest {
+  syllabusId: string;
+  userId: string;
+}
 
 interface RemoveResponse {
   success: boolean;
   message: string;
-  syllabusId: string;
   timestamp: string;
 }
 
 interface ErrorResponse {
   error: string;
   timestamp: string;
-}
-
-interface RemoveRequest {
-  syllabusId: string;
-  userId: string;
 }
 
 const headers = {
@@ -30,6 +30,13 @@ export const handler: Handler = async (
   event: HandlerEvent,
   context: HandlerContext
 ) => {
+  console.log("🗑️ Syllabus removal function called");
+  console.log("📊 Request details:", {
+    method: event.httpMethod,
+    headers: event.headers,
+    bodyLength: event.body?.length || 0,
+  });
+
   // Handle preflight requests
   if (event.httpMethod === "OPTIONS") {
     return {
@@ -48,26 +55,67 @@ export const handler: Handler = async (
   }
 
   try {
-    console.log("🗑️ Syllabus removal called");
+    // Parse request body
+    const body = event.isBase64Encoded
+      ? Buffer.from(event.body!, "base64").toString("utf-8")
+      : event.body!;
 
-    // Parse the request body
-    const body: RemoveRequest = JSON.parse(event.body || "{}");
-    const { syllabusId, userId } = body;
+    const requestData: RemoveRequest = JSON.parse(body);
+    console.log("📋 Remove request:", requestData);
 
-    if (!syllabusId || !userId) {
-      throw new Error("Missing required fields: syllabusId and userId");
+    // First, get the syllabus record to find the file path
+    console.log("🔍 Fetching syllabus record...");
+    const { data: syllabus, error: fetchError } = await supabase
+      .from("syllabi")
+      .select("*")
+      .eq("id", requestData.syllabusId)
+      .eq("user_id", requestData.userId)
+      .single();
+
+    if (fetchError || !syllabus) {
+      console.error("❌ Syllabus not found:", fetchError);
+      throw new Error("Syllabus not found or access denied");
     }
 
-    // For now, simulate successful removal since actual database operations
-    // would require additional setup
+    console.log("📄 Found syllabus:", syllabus);
+
+    // Delete the file from storage
+    const filePath = `${requestData.userId}/${syllabus.filename}`;
+    console.log("🗑️ Removing file from storage:", filePath);
+
+    const { error: storageError } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .remove([filePath]);
+
+    if (storageError) {
+      console.warn("⚠️ Storage removal failed:", storageError);
+      // Continue with database removal even if storage fails
+    } else {
+      console.log("✅ File removed from storage");
+    }
+
+    // Delete the database record
+    console.log("🗑️ Removing database record...");
+    const { error: dbError } = await supabase
+      .from("syllabi")
+      .delete()
+      .eq("id", requestData.syllabusId)
+      .eq("user_id", requestData.userId);
+
+    if (dbError) {
+      console.error("❌ Database removal error:", dbError);
+      throw new Error(`Database removal failed: ${dbError.message}`);
+    }
+
+    console.log("✅ Database record removed");
+
     const removeResponse: RemoveResponse = {
       success: true,
       message: "Syllabus removed successfully",
-      syllabusId: syllabusId,
       timestamp: new Date().toISOString(),
     };
 
-    console.log(`✅ Syllabus removed: ${syllabusId} for user: ${userId}`);
+    console.log(`✅ Syllabus removed successfully: ${requestData.syllabusId}`);
 
     return {
       statusCode: 200,
@@ -76,10 +124,15 @@ export const handler: Handler = async (
     };
   } catch (error) {
     console.error("❌ Remove function error:", error);
+    console.error("❌ Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined,
+    });
 
     const errorResponse: ErrorResponse = {
       error:
-        "Remove failed: " +
+        "Removal failed: " +
         (error instanceof Error ? error.message : "Unknown error"),
       timestamp: new Date().toISOString(),
     };
