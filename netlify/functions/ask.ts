@@ -1,6 +1,10 @@
-const { OpenAI } = require("openai");
+import { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
+import { OpenAI } from "openai";
 
-exports.handler = async (event, context) => {
+const handler: Handler = async (
+  event: HandlerEvent,
+  context: HandlerContext
+) => {
   // Enhanced CORS headers
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -34,9 +38,9 @@ exports.handler = async (event, context) => {
     console.log("📝 Request body:", event.body);
 
     // Parse request body
-    let requestData;
+    let requestData: { question?: string };
     try {
-      requestData = JSON.parse(event.body || "{}");
+      requestData = JSON.parse(event.body || "{}") as { question?: string };
     } catch (parseError) {
       console.error("❌ JSON parse error:", parseError);
       return {
@@ -125,7 +129,7 @@ exports.handler = async (event, context) => {
         model: "gpt-3.5-turbo",
       }),
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Function error:", error);
 
     let errorMessage = "An unexpected error occurred";
@@ -159,3 +163,5 @@ exports.handler = async (event, context) => {
     };
   }
 };
+
+export { handler };

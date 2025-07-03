@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js",
-    "build": "echo 'Static site ready for deployment'"
+    "build": "echo 'Static site ready for deployment'",
+    "type-check": "tsc --noEmit",
+    "build:functions": "tsc --project netlify/functions"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -23,5 +25,10 @@
     "netlify"
   ],
   "author": "SmartyPants-AI",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@netlify/functions": "^4.1.8",
+    "@types/node": "^24.0.10",
+    "typescript": "^5.8.3"
+  }
 }

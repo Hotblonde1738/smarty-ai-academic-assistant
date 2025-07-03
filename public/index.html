@@ -55,476 +55,602 @@
     />
   </head>
   <body>
-    <!-- PWA Install Banner -->
-    <div id="installBanner" class="install-banner hidden">
-      <div class="install-content">
-        <img
-          src="https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=64"
-          alt="SmartyPants-AI"
-          class="install-icon"
-        />
-        <div class="install-text">
-          <h3>Install SmartyPants-AI</h3>
-          <p>Get quick access to your academic assistant!</p>
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <!-- Brand/Logo Section -->
+      <div class="sidebar-header">
+        <div class="brand">
+          <span class="brand-name">SmartyPants-AI</span>
         </div>
-        <div class="install-buttons">
-          <button id="installButton" class="install-btn">Install</button>
-          <button id="dismissInstall" class="dismiss-btn">×</button>
+        <button class="sidebar-toggle" id="sidebarToggle">
+          <span class="toggle-icon">☰</span>
+        </button>
+      </div>
+
+      <!-- Authentication Section -->
+      <div class="sidebar-section auth-section" id="authSection">
+        <div class="auth-buttons">
+          <button class="auth-btn login-btn" id="loginBtn">🔐 Login</button>
+          <button class="auth-btn register-btn" id="registerBtn">
+            📝 Register
+          </button>
+        </div>
+      </div>
+
+      <!-- Account Status Section (Hidden when not logged in) -->
+      <div class="sidebar-section account-section hidden" id="accountSection">
+        <div class="account-status">
+          <div class="user-info">
+            <div class="user-avatar">
+              <img
+                src="https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=50"
+                alt="User Avatar"
+                class="avatar-img"
+              />
+            </div>
+            <div class="user-details">
+              <div class="user-name" id="userName">Student User</div>
+              <div class="user-email" id="userEmail">student@example.com</div>
+            </div>
+          </div>
+          <div class="subscription-info">
+            <div class="status-badge active" id="statusBadge">✅ Active</div>
+            <div class="plan-info" id="planInfo">College Plan</div>
+            <div class="price-info" id="priceInfo">$65/month</div>
+            <div class="next-billing" id="nextBilling">Next: Jan 15, 2025</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Syllabus Management Section -->
+      <div class="sidebar-section syllabus-section">
+        <div class="section-header">
+          <h3>📚 Syllabus Management</h3>
+          <button class="upload-btn" id="uploadSyllabusBtn">➕ Upload</button>
+        </div>
+        <div class="syllabus-list" id="syllabusList">
+          <!-- Syllabus items will be dynamically populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- Quick Actions Section -->
+      <div class="sidebar-section quick-actions-section">
+        <div class="section-header">
+          <h3>🎯 Quick Actions</h3>
+        </div>
+        <div class="quick-actions">
+          <button class="action-btn chat-btn" id="quickChatBtn">
+            <span class="action-icon">💬</span>
+            <span class="action-text">Start Chat</span>
+          </button>
+          <button class="action-btn essay-btn" id="quickEssayBtn">
+            <span class="action-icon">📝</span>
+            <span class="action-text">New Essay</span>
+          </button>
+          <button class="action-btn tutoring-btn" id="quickTutoringBtn">
+            <span class="action-icon">🧠</span>
+            <span class="action-text">Get Tutoring</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Settings Section -->
+      <div class="sidebar-section settings-section">
+        <div class="section-header">
+          <h3>⚙️ Settings</h3>
+        </div>
+        <div class="settings-menu">
+          <button class="settings-btn" id="notificationsBtn">
+            <span class="settings-icon">🔔</span>
+            <span class="settings-text">Notifications</span>
+          </button>
+          <button class="settings-btn" id="emailPrefsBtn">
+            <span class="settings-icon">📧</span>
+            <span class="settings-text">Email Preferences</span>
+          </button>
+          <button class="settings-btn" id="accountSettingsBtn">
+            <span class="settings-icon">👤</span>
+            <span class="settings-text">Account Settings</span>
+          </button>
+          <button class="settings-btn logout-btn" id="logoutBtn">
+            <span class="settings-icon">🚪</span>
+            <span class="settings-text">Logout</span>
+          </button>
         </div>
       </div>
     </div>
 
-    <div class="loading-overlay hidden">
-      <div class="loading-spinner"></div>
-      <p>Processing your request...</p>
-    </div>
+    <!-- SIDEBAR OVERLAY FOR MOBILE -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- PAGE 1: LANDING PAGE -->
-    <div class="landing-container" id="landingPage">
-      <div class="hero-section">
+    <!-- MAIN CONTENT AREA -->
+    <div class="main-content" id="mainContent">
+      <!-- Mobile Menu Button -->
+      <button class="mobile-menu-btn" id="mobileMenuBtn">
+        <span class="menu-icon">☰</span>
+      </button>
+
+      <!-- PWA Install Banner -->
+      <div id="installBanner" class="install-banner hidden">
+        <div class="install-content">
+          <img
+            src="https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=64"
+            alt="SmartyPants-AI"
+            class="install-icon"
+          />
+          <div class="install-text">
+            <h3>Install SmartyPants-AI</h3>
+            <p>Get quick access to your academic assistant!</p>
+          </div>
+          <div class="install-buttons">
+            <button id="installButton" class="install-btn">Install</button>
+            <button id="dismissInstall" class="dismiss-btn">×</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+        <p>Processing your request...</p>
+      </div>
+
+      <!-- PAGE 1: LANDING PAGE -->
+      <div class="landing-container" id="landingPage">
+        <div class="hero-section">
+          <img
+            src="https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=400"
+            alt="Young Graduate in Cap and Gown"
+            class="mascot"
+          />
+          <div class="hero-content">
+            <h1 class="hero-title">
+              Welcome to SmartyPants-AI Academic Assistant!
+            </h1>
+            <p class="hero-subtitle">
+              Your 24/7 Learning Companion for Academic Excellence
+            </p>
+          </div>
+        </div>
+
+        <!-- DEMO SECTION -->
+        <div class="demo-section">
+          <div class="demo-badge">🎯 TRY BEFORE YOU BUY 🎯</div>
+          <h3>Want to Test SmartyPants First?</h3>
+          <p>Try our AI assistant with a quick demo before subscribing!</p>
+          <button id="demoButton" class="demo-button" onclick="startDemo()">
+            Try Demo Now
+          </button>
+          <p class="demo-note">No payment required for demo</p>
+        </div>
+
+        <div class="feature-highlights">
+          <div class="feature-card">
+            <h2>Interactive Study Partner</h2>
+            <p>
+              Transform your learning experience with personalized assistance
+              available 24/7!
+            </p>
+            <ul class="feature-list">
+              <li>Customized Study Plans</li>
+              <li>Interactive Quiz Sessions</li>
+              <li>Instant Homework Help</li>
+              <li>Progress Tracking</li>
+            </ul>
+          </div>
+
+          <div class="feature-card">
+            <h2>Essay Writing Master</h2>
+            <p>From brainstorming to polished final drafts!</p>
+            <ul class="feature-list">
+              <li>Topic Development</li>
+              <li>Structure Guidance</li>
+              <li>Citation Assistance</li>
+              <li>Proofreading Support</li>
+            </ul>
+          </div>
+
+          <div class="feature-card">
+            <h2>Math & Science Support</h2>
+            <p>Master complex concepts with step-by-step guidance!</p>
+            <ul class="feature-list">
+              <li>Problem-Solving Skills</li>
+              <li>Formula Explanations</li>
+              <li>Lab Report Help</li>
+              <li>Scientific Writing</li>
+            </ul>
+          </div>
+
+          <div class="feature-card">
+            <h2>Technical Education</h2>
+            <p>Master technical subjects with expert guidance!</p>
+            <ul class="feature-list">
+              <li>Programming Help</li>
+              <li>Engineering Concepts</li>
+              <li>Technical Writing</li>
+              <li>Project Support</li>
+            </ul>
+          </div>
+
+          <div class="feature-card nursing">
+            <h2>Nursing Excellence</h2>
+            <p>Specialized support for nursing students at every level!</p>
+            <ul class="feature-list">
+              <li>NCLEX Exam Preparation</li>
+              <li>Clinical Case Studies</li>
+              <li>Medical Terminology</li>
+              <li>Anatomy & Physiology</li>
+            </ul>
+          </div>
+
+          <div class="feature-card rotc">
+            <h2>ROTC Excellence</h2>
+            <p>Comprehensive ROTC preparation and support!</p>
+            <ul class="feature-list">
+              <li>Physical Fitness Test Prep</li>
+              <li>Leadership Development</li>
+              <li>Military Science Studies</li>
+              <li>Field Training Preparation</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="education-levels">
+          <h2>Choose Your Subscription Plan</h2>
+          <div class="level-grid">
+            <div
+              class="level-card clickable-card"
+              data-level="elementary"
+              onclick="goToPayment('elementary')"
+            >
+              <h3>Elementary School</h3>
+              <p>$35/month</p>
+              <span class="plan-details">Unlimited Essay Writing</span>
+              <span class="plan-details">24/7 Tutoring Help</span>
+              <span class="plan-details">All Subjects Support</span>
+              <span class="plan-details">Interactive Learning Games</span>
+            </div>
+            <div
+              class="level-card clickable-card"
+              data-level="middle"
+              onclick="goToPayment('middle')"
+            >
+              <h3>Middle School</h3>
+              <p>$35/month</p>
+              <span class="plan-details">Unlimited Essay Writing</span>
+              <span class="plan-details">24/7 Tutoring Help</span>
+              <span class="plan-details">All Subjects Support</span>
+              <span class="plan-details">Study Skills Training</span>
+            </div>
+            <div
+              class="level-card clickable-card"
+              data-level="high"
+              onclick="goToPayment('high')"
+            >
+              <h3>High School</h3>
+              <p>$35/month</p>
+              <span class="plan-details">Advanced Essay Writing</span>
+              <span class="plan-details">24/7 Expert Tutoring</span>
+              <span class="plan-details">SAT/ACT Prep</span>
+              <span class="plan-details">College Application Help</span>
+            </div>
+            <div
+              class="level-card clickable-card"
+              data-level="college"
+              onclick="goToPayment('college')"
+            >
+              <h3>College</h3>
+              <p>$45/month</p>
+              <span class="plan-details">Research Paper Support</span>
+              <span class="plan-details">Advanced Topic Coverage</span>
+              <span class="plan-details">Career Guidance</span>
+              <span class="plan-details">Thesis Development</span>
+            </div>
+            <div
+              class="level-card clickable-card"
+              data-level="rotc"
+              onclick="goToPayment('rotc')"
+            >
+              <h3>ROTC Program</h3>
+              <p>$45/month</p>
+              <span class="plan-details">Physical Fitness Training</span>
+              <span class="plan-details">Leadership Development</span>
+              <span class="plan-details">Military Science Support</span>
+              <span class="plan-details">Field Training Prep</span>
+            </div>
+            <div
+              class="level-card clickable-card"
+              data-level="tech"
+              onclick="goToPayment('tech')"
+            >
+              <h3>Technical School</h3>
+              <p>$45/month</p>
+              <span class="plan-details">Programming Support</span>
+              <span class="plan-details">Engineering Help</span>
+              <span class="plan-details">Technical Writing</span>
+              <span class="plan-details">Project Guidance</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Christian/Religious Schools Special Offer -->
+        <div class="christian-schools-section">
+          <div class="christian-badge">✝️ FAITH-BASED EDUCATION ✝️</div>
+          <h3>Christian & Religious Schools</h3>
+          <div class="christian-price">
+            <span class="price">$45/month</span>
+          </div>
+          <div class="christian-features">
+            <span class="plan-details">🙏 Faith-Integrated Learning</span>
+            <span class="plan-details">📖 Biblical Studies Support</span>
+            <span class="plan-details">⛪ Theology & Ministry Help</span>
+            <span class="plan-details">✨ Character Development</span>
+            <span class="plan-details">📚 All Academic Subjects</span>
+            <span class="plan-details">🎓 Seminary Preparation</span>
+          </div>
+          <div class="christian-note">
+            Supporting students of all faiths and denominations
+          </div>
+          <div class="christian-buttons">
+            <button class="christian-btn" onclick="goToPayment('christian')">
+              Choose Faith-Based Plan
+            </button>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="footer-links">
+            <a href="/html/terms.html" class="footer-link"
+              >Terms & Conditions</a
+            >
+            <a href="/html/privacy.html" class="footer-link">Privacy Policy</a>
+            <a href="mailto:getsmartyai@gmail.com" class="footer-link"
+              >Contact Us</a
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 2: PAYMENT PAGE -->
+      <div class="container hidden" id="paymentPage">
         <img
           src="https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=400"
           alt="Young Graduate in Cap and Gown"
           class="mascot"
         />
-        <div class="hero-content">
-          <h1 class="hero-title">
-            Welcome to SmartyPants-AI Academic Assistant!
-          </h1>
-          <p class="hero-subtitle">
-            Your 24/7 Learning Companion for Academic Excellence
-          </p>
-        </div>
-      </div>
+        <h1>Complete Your Subscription</h1>
 
-      <!-- DEMO SECTION -->
-      <div class="demo-section">
-        <div class="demo-badge">🎯 TRY BEFORE YOU BUY 🎯</div>
-        <h3>Want to Test SmartyPants First?</h3>
-        <p>Try our AI assistant with a quick demo before subscribing!</p>
-        <button id="demoButton" class="demo-button" onclick="startDemo()">
-          Try Demo Now
-        </button>
-        <p class="demo-note">No payment required for demo</p>
-      </div>
-
-      <div class="feature-highlights">
-        <div class="feature-card">
-          <h2>Interactive Study Partner</h2>
-          <p>
-            Transform your learning experience with personalized assistance
-            available 24/7!
-          </p>
-          <ul class="feature-list">
-            <li>Customized Study Plans</li>
-            <li>Interactive Quiz Sessions</li>
-            <li>Instant Homework Help</li>
-            <li>Progress Tracking</li>
-          </ul>
+        <div class="subscription-info">
+          <h3>Your Selected Plan</h3>
+          <p id="planDisplay"></p>
+          <p id="priceDisplay"></p>
         </div>
 
-        <div class="feature-card">
-          <h2>Essay Writing Master</h2>
-          <p>From brainstorming to polished final drafts!</p>
-          <ul class="feature-list">
-            <li>Topic Development</li>
-            <li>Structure Guidance</li>
-            <li>Citation Assistance</li>
-            <li>Proofreading Support</li>
-          </ul>
-        </div>
-
-        <div class="feature-card">
-          <h2>Math & Science Support</h2>
-          <p>Master complex concepts with step-by-step guidance!</p>
-          <ul class="feature-list">
-            <li>Problem-Solving Skills</li>
-            <li>Formula Explanations</li>
-            <li>Lab Report Help</li>
-            <li>Scientific Writing</li>
-          </ul>
-        </div>
-
-        <div class="feature-card">
-          <h2>Technical Education</h2>
-          <p>Master technical subjects with expert guidance!</p>
-          <ul class="feature-list">
-            <li>Programming Help</li>
-            <li>Engineering Concepts</li>
-            <li>Technical Writing</li>
-            <li>Project Support</li>
-          </ul>
-        </div>
-
-        <div class="feature-card nursing">
-          <h2>Nursing Excellence</h2>
-          <p>Specialized support for nursing students at every level!</p>
-          <ul class="feature-list">
-            <li>NCLEX Exam Preparation</li>
-            <li>Clinical Case Studies</li>
-            <li>Medical Terminology</li>
-            <li>Anatomy & Physiology</li>
-          </ul>
-        </div>
-
-        <div class="feature-card rotc">
-          <h2>ROTC Excellence</h2>
-          <p>Comprehensive ROTC preparation and support!</p>
-          <ul class="feature-list">
-            <li>Physical Fitness Test Prep</li>
-            <li>Leadership Development</li>
-            <li>Military Science Studies</li>
-            <li>Field Training Preparation</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="education-levels">
-        <h2>Choose Your Subscription Plan</h2>
-        <div class="level-grid">
-          <div
-            class="level-card clickable-card"
-            data-level="elementary"
-            onclick="goToPayment('elementary')"
-          >
-            <h3>Elementary School</h3>
-            <p>$35/month</p>
-            <span class="plan-details">Unlimited Essay Writing</span>
-            <span class="plan-details">24/7 Tutoring Help</span>
-            <span class="plan-details">All Subjects Support</span>
-            <span class="plan-details">Interactive Learning Games</span>
+        <!-- Summer Special for Nursing & Tech Schools -->
+        <div class="summer-special-section">
+          <div class="special-badge">🌟 SUMMER SPECIAL 🌟</div>
+          <h3>Nursing & Tech Schools</h3>
+          <div class="special-price">
+            <span class="new-price">$45/month</span>
           </div>
-          <div
-            class="level-card clickable-card"
-            data-level="middle"
-            onclick="goToPayment('middle')"
-          >
-            <h3>Middle School</h3>
-            <p>$35/month</p>
-            <span class="plan-details">Unlimited Essay Writing</span>
-            <span class="plan-details">24/7 Tutoring Help</span>
-            <span class="plan-details">All Subjects Support</span>
-            <span class="plan-details">Study Skills Training</span>
+          <div class="special-features">
+            <span class="plan-details">✨ Unlimited Tutoring</span>
+            <span class="plan-details">✨ NCLEX Preparation</span>
+            <span class="plan-details">✨ Programming Support</span>
+            <span class="plan-details">✨ Technical Writing Help</span>
+            <span class="plan-details">✨ Clinical Case Studies</span>
+            <span class="plan-details">✨ Engineering Concepts</span>
           </div>
-          <div
-            class="level-card clickable-card"
-            data-level="high"
-            onclick="goToPayment('high')"
-          >
-            <h3>High School</h3>
-            <p>$35/month</p>
-            <span class="plan-details">Advanced Essay Writing</span>
-            <span class="plan-details">24/7 Expert Tutoring</span>
-            <span class="plan-details">SAT/ACT Prep</span>
-            <span class="plan-details">College Application Help</span>
-          </div>
-          <div
-            class="level-card clickable-card"
-            data-level="college"
-            onclick="goToPayment('college')"
-          >
-            <h3>College</h3>
-            <p>$45/month</p>
-            <span class="plan-details">Research Paper Support</span>
-            <span class="plan-details">Advanced Topic Coverage</span>
-            <span class="plan-details">Career Guidance</span>
-            <span class="plan-details">Thesis Development</span>
-          </div>
-          <div
-            class="level-card clickable-card"
-            data-level="rotc"
-            onclick="goToPayment('rotc')"
-          >
-            <h3>ROTC Program</h3>
-            <p>$45/month</p>
-            <span class="plan-details">Physical Fitness Training</span>
-            <span class="plan-details">Leadership Development</span>
-            <span class="plan-details">Military Science Support</span>
-            <span class="plan-details">Field Training Prep</span>
-          </div>
-          <div
-            class="level-card clickable-card"
-            data-level="tech"
-            onclick="goToPayment('tech')"
-          >
-            <h3>Technical School</h3>
-            <p>$45/month</p>
-            <span class="plan-details">Programming Support</span>
-            <span class="plan-details">Engineering Help</span>
-            <span class="plan-details">Technical Writing</span>
-            <span class="plan-details">Project Guidance</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Christian/Religious Schools Special Offer -->
-      <div class="christian-schools-section">
-        <div class="christian-badge">✝️ FAITH-BASED EDUCATION ✝️</div>
-        <h3>Christian & Religious Schools</h3>
-        <div class="christian-price">
-          <span class="price">$45/month</span>
-        </div>
-        <div class="christian-features">
-          <span class="plan-details">🙏 Faith-Integrated Learning</span>
-          <span class="plan-details">📖 Biblical Studies Support</span>
-          <span class="plan-details">⛪ Theology & Ministry Help</span>
-          <span class="plan-details">✨ Character Development</span>
-          <span class="plan-details">📚 All Academic Subjects</span>
-          <span class="plan-details">🎓 Seminary Preparation</span>
-        </div>
-        <div class="christian-note">
-          Supporting students of all faiths and denominations
-        </div>
-        <div class="christian-buttons">
-          <button class="christian-btn" onclick="goToPayment('christian')">
-            Choose Faith-Based Plan
-          </button>
-        </div>
-      </div>
-
-      <div class="footer">
-        <div class="footer-links">
-          <a href="/html/terms.html" class="footer-link">Terms & Conditions</a>
-          <a href="/html/privacy.html" class="footer-link">Privacy Policy</a>
-          <a href="mailto:getsmartyai@gmail.com" class="footer-link"
-            >Contact Us</a
-          >
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE 2: PAYMENT PAGE -->
-    <div class="container hidden" id="paymentPage">
-      <img
-        src="https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=400"
-        alt="Young Graduate in Cap and Gown"
-        class="mascot"
-      />
-      <h1>Complete Your Subscription</h1>
-
-      <div class="subscription-info">
-        <h3>Your Selected Plan</h3>
-        <p id="planDisplay"></p>
-        <p id="priceDisplay"></p>
-      </div>
-
-      <!-- Summer Special for Nursing & Tech Schools -->
-      <div class="summer-special-section">
-        <div class="special-badge">🌟 SUMMER SPECIAL 🌟</div>
-        <h3>Nursing & Tech Schools</h3>
-        <div class="special-price">
-          <span class="new-price">$45/month</span>
-        </div>
-        <div class="special-features">
-          <span class="plan-details">✨ Unlimited Tutoring</span>
-          <span class="plan-details">✨ NCLEX Preparation</span>
-          <span class="plan-details">✨ Programming Support</span>
-          <span class="plan-details">✨ Technical Writing Help</span>
-          <span class="plan-details">✨ Clinical Case Studies</span>
-          <span class="plan-details">✨ Engineering Concepts</span>
-        </div>
-        <div class="special-note">Limited time offer - Summer Sale 2025!</div>
-        <div class="special-buttons">
-          <button class="special-nursing-btn" onclick="goToPayment('nursing')">
-            Choose Nursing
-          </button>
-          <button class="special-tech-btn" onclick="goToPayment('tech')">
-            Choose Tech
-          </button>
-        </div>
-      </div>
-
-      <div class="payment-section">
-        <div class="payment-content">
-          <h3>Subscribe Now</h3>
-          <div class="payment-info">
-            <p>
-              <strong>Credit Card Payment:</strong> No Cash App account needed -
-              just click "Pay with Credit Card"
-            </p>
-            <p>
-              <strong>Cash App:</strong> Pay directly through Cash App if you
-              have an account
-            </p>
-            <p>
-              <strong>PayPal:</strong> Quick and secure payment through PayPal
-            </p>
-          </div>
-          <div class="payment-reminder">
-            <p>
-              ⏰ Payment Reminder Service: We'll send you a friendly reminder 3
-              days before your next payment is due!
-            </p>
-            <p class="payment-reminder-note">
-              📧 You'll receive email receipts and welcome information after
-              payment
-            </p>
-          </div>
-          <div class="payment-options">
-            <button class="payment-button" data-method="card">
-              Pay with Credit Card
+          <div class="special-note">Limited time offer - Summer Sale 2025!</div>
+          <div class="special-buttons">
+            <button
+              class="special-nursing-btn"
+              onclick="goToPayment('nursing')"
+            >
+              Choose Nursing
             </button>
-            <button class="payment-button paypal" data-method="paypal">
-              Pay with PayPal
-            </button>
-            <button class="payment-button cashapp" data-method="cashapp">
-              Pay with Cash App
+            <button class="special-tech-btn" onclick="goToPayment('tech')">
+              Choose Tech
             </button>
           </div>
         </div>
-      </div>
 
-      <div class="footer">
-        <div class="footer-links">
-          <a href="/html/terms.html" class="footer-link">Terms & Conditions</a>
-          <a href="/html/privacy.html" class="footer-link">Privacy Policy</a>
-          <a href="mailto:getsmartyai@gmail.com" class="footer-link"
-            >Contact Us</a
-          >
+        <div class="payment-section">
+          <div class="payment-content">
+            <h3>Subscribe Now</h3>
+            <div class="payment-info">
+              <p>
+                <strong>Credit Card Payment:</strong> No Cash App account needed
+                - just click "Pay with Credit Card"
+              </p>
+              <p>
+                <strong>Cash App:</strong> Pay directly through Cash App if you
+                have an account
+              </p>
+              <p>
+                <strong>PayPal:</strong> Quick and secure payment through PayPal
+              </p>
+            </div>
+            <div class="payment-reminder">
+              <p>
+                ⏰ Payment Reminder Service: We'll send you a friendly reminder
+                3 days before your next payment is due!
+              </p>
+              <p class="payment-reminder-note">
+                📧 You'll receive email receipts and welcome information after
+                payment
+              </p>
+            </div>
+            <div class="payment-options">
+              <button class="payment-button" data-method="card">
+                Pay with Credit Card
+              </button>
+              <button class="payment-button paypal" data-method="paypal">
+                Pay with PayPal
+              </button>
+              <button class="payment-button cashapp" data-method="cashapp">
+                Pay with Cash App
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="footer-links">
+            <a href="/html/terms.html" class="footer-link"
+              >Terms & Conditions</a
+            >
+            <a href="/html/privacy.html" class="footer-link">Privacy Policy</a>
+            <a href="mailto:getsmartyai@gmail.com" class="footer-link"
+              >Contact Us</a
+            >
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- PAGE 3: CHAT PAGE (AFTER PAYMENT) -->
-    <div class="container hidden" id="chatPage">
-      <img
-        src="https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=400"
-        alt="Young Graduate in Cap and Gown"
-        class="mascot"
-      />
-      <h1>SmartyPants-AI Academic Assistant</h1>
+      <!-- PAGE 3: CHAT PAGE (AFTER PAYMENT) -->
+      <div class="container hidden" id="chatPage">
+        <img
+          src="https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=400"
+          alt="Young Graduate in Cap and Gown"
+          class="mascot"
+        />
+        <h1>SmartyPants-AI Academic Assistant</h1>
 
-      <div class="subscription-info">
-        <h3>Your Active Subscription</h3>
-        <p id="activePlanDisplay"></p>
-        <p id="activePriceDisplay"></p>
-        <div class="subscription-status">
-          <span class="status-active">✅ Active</span>
-          <span class="next-billing"
-            >Next billing: <span id="nextBillingDate"></span
-          ></span>
+        <div class="subscription-info">
+          <h3>Your Active Subscription</h3>
+          <p id="activePlanDisplay"></p>
+          <p id="activePriceDisplay"></p>
+          <div class="subscription-status">
+            <span class="status-active">✅ Active</span>
+            <span class="next-billing"
+              >Next billing: <span id="nextBillingDate"></span
+            ></span>
+          </div>
         </div>
-      </div>
 
-      <div class="help-options-section">
-        <h3>What Do You Need Help With?</h3>
-        <select id="helpType" class="dropdown">
-          <option value="">Select Help Type</option>
-          <option value="tutoring">Get Tutoring Help</option>
-          <option value="essay">Write an Essay</option>
-          <option value="homework">Homework Help</option>
-          <option value="exam">Exam Preparation</option>
-        </select>
-
-        <select id="subject" class="dropdown">
-          <option value="">Select Subject</option>
-          <option value="english">English</option>
-          <option value="science">Science</option>
-          <option value="math">Mathematics</option>
-          <option value="history">History</option>
-          <option value="art">Art</option>
-          <option value="psychology">Psychology</option>
-          <option value="sociology">Sociology</option>
-          <option value="nursing">Nursing</option>
-          <option value="computer">Computer Science</option>
-          <option value="business">Business</option>
-          <option value="other">Other</option>
-        </select>
-
-        <select id="difficulty" class="dropdown">
-          <option value="">Select Difficulty Level</option>
-          <option value="easy">Easy</option>
-          <option value="moderate">Moderate</option>
-          <option value="professional">Professional</option>
-        </select>
-
-        <select id="essayType" class="dropdown hidden">
-          <option value="">Select Essay Type</option>
-          <option value="argumentative">Argumentative Essay</option>
-          <option value="thesis">Thesis Statement</option>
-          <option value="expository">Expository Essay</option>
-          <option value="narrative">Narrative Essay</option>
-          <option value="compare">Compare and Contrast</option>
-        </select>
-
-        <div id="referenceOptions" class="reference-options hidden">
-          <h4>Reference Requirements</h4>
-          <select id="citationStyle" class="dropdown">
-            <option value="">Select Citation Style</option>
-            <option value="apa">APA</option>
-            <option value="mla">MLA</option>
-            <option value="chicago">Chicago</option>
-            <option value="harvard">Harvard</option>
+        <div class="help-options-section">
+          <h3>What Do You Need Help With?</h3>
+          <select id="helpType" class="dropdown">
+            <option value="">Select Help Type</option>
+            <option value="tutoring">Get Tutoring Help</option>
+            <option value="essay">Write an Essay</option>
+            <option value="homework">Homework Help</option>
+            <option value="exam">Exam Preparation</option>
           </select>
+
+          <select id="subject" class="dropdown">
+            <option value="">Select Subject</option>
+            <option value="english">English</option>
+            <option value="science">Science</option>
+            <option value="math">Mathematics</option>
+            <option value="history">History</option>
+            <option value="art">Art</option>
+            <option value="psychology">Psychology</option>
+            <option value="sociology">Sociology</option>
+            <option value="nursing">Nursing</option>
+            <option value="computer">Computer Science</option>
+            <option value="business">Business</option>
+            <option value="other">Other</option>
+          </select>
+
+          <select id="difficulty" class="dropdown">
+            <option value="">Select Difficulty Level</option>
+            <option value="easy">Easy</option>
+            <option value="moderate">Moderate</option>
+            <option value="professional">Professional</option>
+          </select>
+
+          <select id="essayType" class="dropdown hidden">
+            <option value="">Select Essay Type</option>
+            <option value="argumentative">Argumentative Essay</option>
+            <option value="thesis">Thesis Statement</option>
+            <option value="expository">Expository Essay</option>
+            <option value="narrative">Narrative Essay</option>
+            <option value="compare">Compare and Contrast</option>
+          </select>
+
+          <div id="referenceOptions" class="reference-options hidden">
+            <h4>Reference Requirements</h4>
+            <select id="citationStyle" class="dropdown">
+              <option value="">Select Citation Style</option>
+              <option value="apa">APA</option>
+              <option value="mla">MLA</option>
+              <option value="chicago">Chicago</option>
+              <option value="harvard">Harvard</option>
+            </select>
+            <input
+              type="number"
+              id="minReferences"
+              class="number-input"
+              placeholder="Minimum number of references"
+              min="0"
+              max="50"
+            />
+          </div>
+
           <input
-            type="number"
-            id="minReferences"
-            class="number-input"
-            placeholder="Minimum number of references"
-            min="0"
-            max="50"
+            type="text"
+            id="userInput"
+            placeholder="Describe what you need help with..."
           />
         </div>
 
-        <input
-          type="text"
-          id="userInput"
-          placeholder="Describe what you need help with..."
-        />
-      </div>
-
-      <div class="syllabus-upload hidden">
-        <h3>Upload Your Course Syllabus</h3>
-        <div class="syllabus-instructions">
-          <p>
-            Help Smarty understand your curriculum better by uploading your
-            course syllabus:
-          </p>
-          <ol>
-            <li>
-              Get your course syllabus in PDF or Word format (.pdf, .doc, .docx)
-            </li>
-            <li>Click "Choose File" below and select your syllabus</li>
-            <li>Click "Upload Syllabus" to add it to your profile</li>
-            <li>You can upload multiple syllabi for different courses</li>
-            <li>Remove any syllabus by clicking the "×" button next to it</li>
-          </ol>
+        <div class="syllabus-upload hidden">
+          <h3>Upload Your Course Syllabus</h3>
+          <div class="syllabus-instructions">
+            <p>
+              Help Smarty understand your curriculum better by uploading your
+              course syllabus:
+            </p>
+            <ol>
+              <li>
+                Get your course syllabus in PDF or Word format (.pdf, .doc,
+                .docx)
+              </li>
+              <li>Click "Choose File" below and select your syllabus</li>
+              <li>Click "Upload Syllabus" to add it to your profile</li>
+              <li>You can upload multiple syllabi for different courses</li>
+              <li>Remove any syllabus by clicking the "×" button next to it</li>
+            </ol>
+          </div>
+          <input
+            type="file"
+            id="syllabusFile"
+            accept=".pdf,.doc,.docx"
+            class="file-input"
+          />
+          <button class="upload-button">Upload Syllabus</button>
+          <div
+            id="syllabusStatus"
+            class="status-message"
+            aria-live="polite"
+          ></div>
+          <div id="activeSyllabi" class="syllabi-list"></div>
         </div>
-        <input
-          type="file"
-          id="syllabusFile"
-          accept=".pdf,.doc,.docx"
-          class="file-input"
-        />
-        <button class="upload-button">Upload Syllabus</button>
-        <div
-          id="syllabusStatus"
-          class="status-message"
-          aria-live="polite"
-        ></div>
-        <div id="activeSyllabi" class="syllabi-list"></div>
-      </div>
 
-      <button class="generate-button">Ask SmartyPants Now!</button>
+        <button class="generate-button">Ask SmartyPants Now!</button>
 
-      <!-- Enhanced Response Section -->
-      <div id="response" class="essay-response" aria-live="polite">
-        <div class="response-placeholder">
-          <h4>💡 SmartyPants will respond here!</h4>
-          <p>
-            Fill out the form above and click "Ask SmartyPants Now!" to get your
-            personalized help.
-          </p>
+        <!-- Enhanced Response Section -->
+        <div id="response" class="essay-response" aria-live="polite">
+          <div class="response-placeholder">
+            <h4>💡 SmartyPants will respond here!</h4>
+            <p>
+              Fill out the form above and click "Ask SmartyPants Now!" to get
+              your personalized help.
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div class="footer">
-        <div class="footer-links">
-          <a href="/html/terms.html" class="footer-link">Terms & Conditions</a>
-          <a href="/html/privacy.html" class="footer-link">Privacy Policy</a>
-          <a href="mailto:getsmartyai@gmail.com" class="footer-link"
-            >Contact Us</a
-          >
+        <div class="footer">
+          <div class="footer-links">
+            <a href="/html/terms.html" class="footer-link"
+              >Terms & Conditions</a
+            >
+            <a href="/html/privacy.html" class="footer-link">Privacy Policy</a>
+            <a href="mailto:getsmartyai@gmail.com" class="footer-link"
+              >Contact Us</a
+            >
+          </div>
         </div>
       </div>
     </div>

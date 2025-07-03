@@ -1,0 +1,100 @@
+# SmartyPants-AI Project Rules
+
+## Project Context
+
+This is a Netlify-deployed web application for SmartyPants-AI Academic Assistant. The project is live at https://getsmartyai.space
+
+## Development Environment
+
+- **Platform**: Netlify (Serverless)
+- **Local Environment**: Windows PowerShell
+- **No Local Server**: This project doesn't use a local development server
+- **File Structure**: Static HTML/CSS/JS with Netlify Functions
+
+## Important Rules
+
+### 1. No Local Server Commands
+
+- **NEVER** suggest running `node index.js` or similar local server commands
+- **NEVER** use `run_terminal_cmd` to start servers
+- The `index.js` file is for Netlify Functions, not local development
+- All development is done by editing files directly
+
+### 2. Windows PowerShell Commands
+
+- **ALWAYS** provide commands for Windows PowerShell
+- **NEVER** use Unix/Linux commands (like `rm -rf`, `ls`, etc.)
+- Use PowerShell equivalents:
+  - `Remove-Item -Recurse -Force` instead of `rm -rf`
+  - `Get-ChildItem` instead of `ls`
+  - `New-Item` instead of `mkdir`
+  - `Copy-Item` instead of `cp`
+
+### 3. Command Execution
+
+- **ALWAYS** set `require_user_approval: true` for terminal commands
+- **NEVER** auto-execute commands without user approval
+- Provide commands for the user to run manually
+- Explain what each command does before suggesting it
+
+### 4. File Operations
+
+- Use `edit_file` and `search_replace` for code changes
+- Use `read_file` to examine existing code
+- Use `list_dir` to explore project structure
+- Use `file_search` to find specific files
+
+### 5. Project Structure
+
+- **Root**: Configuration files (package.json, netlify.toml, README.md)
+- **public/**: Main web application files
+- **netlify/functions/**: Serverless functions for backend
+- **No build process**: Direct file editing and deployment
+
+### 6. Deployment
+
+- Changes are deployed automatically via Netlify
+- No build commands needed
+- File changes trigger automatic deployment
+- Check https://getsmartyai.space for live updates
+
+### 7. Development Workflow
+
+1. Edit files using appropriate tools
+2. Provide PowerShell commands for user to run (if needed)
+3. Test changes on live site
+4. No local server required
+
+### 8. Common Tasks
+
+- **Git operations**: Use PowerShell Git commands
+- **File management**: Use PowerShell file commands
+- **Package management**: Use `npm` commands in PowerShell
+- **Environment setup**: Focus on file editing, not server setup
+
+### 9. Error Handling
+
+- If suggesting commands, always explain the purpose
+- Provide alternative approaches if commands fail
+- Consider Windows-specific issues and solutions
+
+### 10. Communication
+
+- Always clarify that this is a Netlify project
+- Remind users to check the live site for changes
+- Explain that no local server is needed for development
+
+## Example Command Format
+
+```powershell
+# Example: Remove a directory
+Remove-Item -Recurse -Force "directory_name"
+
+# Example: List files
+Get-ChildItem
+
+# Example: Create directory
+New-Item -ItemType Directory -Name "new_directory"
+```
+
+Remember: This is a static site deployed on Netlify. Focus on file editing and provide Windows PowerShell commands when needed.

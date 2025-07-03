@@ -1,4 +1,4 @@
-// SYLLABUS SERVICE - Business Logic for Syllabus Management
+// SYLLABUS SERVICE - Unified Syllabus Management for Authenticated & Non-Authenticated Users
 console.log("📚 SYLLABUS SERVICE LOADING...");
 
 class SyllabusService {
@@ -11,50 +11,181 @@ class SyllabusService {
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
     this.maxSyllabiPerUser = 10;
+
+    // Unified storage management
+    this.storageMode = "local"; // 'local' or 'database'
+    this.sessionId = this.getOrCreateSessionId();
+    this.userId = null;
+    this.isAuthenticated = false;
+
+    // Initialize storage mode detection
+    this.detectStorageMode();
   }
 
-  // Upload syllabus file
+  // Detect if user is authenticated and set storage mode
+  detectStorageMode() {
+    // Check for authentication token or user session
+    const authToken = localStorage.getItem("smartypants_auth_token");
+    const userData = localStorage.getItem("smartypants_user_data");
+
+    if (authToken && userData) {
+      try {
+        const user = JSON.parse(userData);
+        this.userId = user.id || user.email;
+        this.isAuthenticated = true;
+        this.storageMode = "database";
+        console.log("🔐 Authenticated user detected, using database storage");
+      } catch (error) {
+        console.warn("⚠️ Invalid user data, falling back to local storage");
+        this.storageMode = "local";
+      }
+    } else {
+      this.storageMode = "local";
+      console.log("👤 Non-authenticated user, using local storage");
+    }
+  }
+
+  // Get or create session ID for non-authenticated users
+  getOrCreateSessionId() {
+    let sessionId = localStorage.getItem("smartypants_session_id");
+    if (!sessionId) {
+      sessionId =
+        "session_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem("smartypants_session_id", sessionId);
+    }
+    return sessionId;
+  }
+
+  // Upload syllabus file - unified interface
   async uploadSyllabus(file) {
-    console.log("📚 Uploading syllabus:", file.name);
+    console.log("📚 Uploading syllabus:", file.name, "Mode:", this.storageMode);
+    console.log("🔍 Service state:", {
+      storageMode: this.storageMode,
+      isAuthenticated: this.isAuthenticated,
+      userId: this.userId,
+      sessionId: this.sessionId,
+    });
 
     try {
       // Validate file
+      console.log("🔍 Validating file...");
       this.validateFile(file);
+      console.log("✅ File validation passed");
 
-      // Prepare form data
-      const formData = new FormData();
-      formData.append("syllabus", file);
+      // Create syllabus record
+      console.log("🔍 Creating syllabus record...");
+      const syllabus = this.createSyllabusRecord(file);
+      console.log("✅ Syllabus record created:", syllabus);
 
-      // Upload to server
-      const response = await fetch("/upload-syllabus", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Add to local collection
-        const syllabus = this.createSyllabusRecord(data, file);
-        this.uploadedSyllabi.push(syllabus);
-
-        // Save to localStorage
-        this.saveSyllabi();
-
-        console.log("✅ Syllabus uploaded successfully:", syllabus);
-        return {
-          success: true,
-          syllabus: syllabus,
-        };
+      // Store based on authentication status
+      if (this.storageMode === "database") {
+        console.log("🔄 Saving to database...");
+        await this.saveToDatabase(syllabus);
       } else {
-        throw new Error(data.error || "Failed to upload syllabus");
+        console.log("💾 Using local storage only");
       }
+
+      // Always save to local storage (as cache or primary storage)
+      console.log("💾 Saving to local storage...");
+      this.saveToLocalStorage(syllabus);
+
+      // Add to local collection
+      this.uploadedSyllabi.push(syllabus);
+      console.log("📚 Added to local collection");
+
+      console.log("✅ Syllabus uploaded successfully:", syllabus);
+      return {
+        success: true,
+        syllabus: syllabus,
+        storageMode: this.storageMode,
+      };
     } catch (error) {
       console.error("❌ Syllabus upload failed:", error);
+      console.error("❌ Error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
       return {
         success: false,
         error: error.message,
       };
+    }
+  }
+
+  // Save to database (for authenticated users)
+  async saveToDatabase(syllabus) {
+    try {
+      console.log("🔄 Attempting database upload...");
+
+      // For now, we'll send a JSON payload instead of FormData
+      // This is simpler and works better with Netlify functions
+      const uploadData = {
+        userId: this.userId || "anonymous",
+        filename: syllabus.filename,
+        metadata: JSON.stringify(syllabus.metadata),
+        fileSize: syllabus.size,
+        fileType: syllabus.type,
+      };
+
+      console.log("📤 Upload data:", uploadData);
+
+      const response = await fetch("/.netlify/functions/upload-syllabus", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(uploadData),
+      });
+
+      console.log("📥 Response status:", response.status);
+      console.log(
+        "📥 Response headers:",
+        Object.fromEntries(response.headers.entries())
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Response error:", errorText);
+        throw new Error(
+          `Database upload failed: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      console.log("✅ Database response:", data);
+
+      syllabus.id = data.id || syllabus.id;
+      syllabus.url = data.url;
+      syllabus.storageMode = "database";
+
+      console.log("✅ Syllabus saved to database");
+    } catch (error) {
+      console.warn(
+        "⚠️ Database upload failed, using local storage only:",
+        error
+      );
+      syllabus.storageMode = "local";
+      // Don't throw - fallback to local storage
+    }
+  }
+
+  // Save to local storage
+  saveToLocalStorage(syllabus) {
+    try {
+      // Convert file to base64 for localStorage storage
+      const reader = new FileReader();
+      reader.onload = () => {
+        syllabus.fileData = reader.result;
+        syllabus.storageMode = "local";
+        this.saveSyllabi();
+      };
+      reader.readAsDataURL(syllabus.file);
+    } catch (error) {
+      console.error("❌ Failed to save to local storage:", error);
+      // Don't throw - just log the error and continue
+      syllabus.storageMode = "local";
+      this.saveSyllabi();
     }
   }
 
@@ -92,27 +223,63 @@ class SyllabusService {
   }
 
   // Create syllabus record
-  createSyllabusRecord(serverData, file) {
+  createSyllabusRecord(file) {
     return {
-      id: serverData.id || this.generateSyllabusId(),
+      id: this.generateSyllabusId(),
       filename: file.name,
       originalName: file.name,
       size: file.size,
       type: file.type,
       uploadDate: new Date().toISOString(),
       lastModified: new Date(file.lastModified).toISOString(),
-      status: "uploaded",
-      url: serverData.url || null,
+      status: "inactive", // Start as inactive, user can activate
+      file: file, // Keep reference to original file
+      storageMode: this.storageMode,
+      sessionId: this.sessionId,
+      userId: this.userId,
+      url: null,
       metadata: {
-        pages: serverData.pages || null,
-        wordCount: serverData.wordCount || null,
-        extractedText: serverData.extractedText || null,
+        pages: null,
+        wordCount: null,
+        extractedText: null,
+        subject: this.extractSubjectFromFilename(file.name),
       },
     };
   }
 
+  // Extract subject from filename
+  extractSubjectFromFilename(filename) {
+    const name = filename.toLowerCase().replace(/\.[^/.]+$/, "");
+
+    // Common subject patterns
+    const subjects = {
+      math: [
+        "math",
+        "mathematics",
+        "algebra",
+        "calculus",
+        "geometry",
+        "statistics",
+      ],
+      english: ["english", "literature", "writing", "composition", "grammar"],
+      science: ["biology", "chemistry", "physics", "science", "anatomy"],
+      history: ["history", "social studies", "geography", "political"],
+      computer: ["computer", "programming", "coding", "software", "web"],
+      business: ["business", "economics", "accounting", "finance", "marketing"],
+      nursing: ["nursing", "health", "medical", "patient", "clinical"],
+    };
+
+    for (const [subject, keywords] of Object.entries(subjects)) {
+      if (keywords.some((keyword) => name.includes(keyword))) {
+        return subject;
+      }
+    }
+
+    return "general";
+  }
+
   // Remove syllabus
-  removeSyllabus(syllabusId) {
+  async removeSyllabus(syllabusId) {
     console.log("📚 Removing syllabus:", syllabusId);
 
     const index = this.uploadedSyllabi.findIndex((s) => s.id === syllabusId);
@@ -121,6 +288,24 @@ class SyllabusService {
     }
 
     const removedSyllabus = this.uploadedSyllabi.splice(index, 1)[0];
+
+    // Remove from database if applicable
+    if (removedSyllabus.storageMode === "database") {
+      try {
+        await fetch(`/.netlify/functions/remove-syllabus`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            syllabusId,
+            userId: this.userId,
+          }),
+        });
+      } catch (error) {
+        console.warn("⚠️ Failed to remove from database:", error);
+      }
+    }
+
+    // Always remove from local storage
     this.saveSyllabi();
 
     console.log("✅ Syllabus removed:", removedSyllabus);
@@ -128,6 +313,33 @@ class SyllabusService {
       success: true,
       syllabus: removedSyllabus,
     };
+  }
+
+  // Toggle syllabus active status
+  toggleSyllabus(syllabusId) {
+    const syllabus = this.getSyllabusById(syllabusId);
+    if (!syllabus) {
+      throw new Error("Syllabus not found");
+    }
+
+    // Deactivate all other syllabi
+    this.uploadedSyllabi.forEach((s) => (s.status = "inactive"));
+
+    // Activate the selected syllabus
+    syllabus.status = "active";
+    syllabus.lastModified = new Date().toISOString();
+
+    this.saveSyllabi();
+
+    return {
+      success: true,
+      syllabus: syllabus,
+    };
+  }
+
+  // Get active syllabus
+  getActiveSyllabus() {
+    return this.uploadedSyllabi.find((s) => s.status === "active");
   }
 
   // Get all syllabi
@@ -202,6 +414,8 @@ class SyllabusService {
       totalSize: totalSize,
       totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
       fileTypes: fileTypes,
+      storageMode: this.storageMode,
+      isAuthenticated: this.isAuthenticated,
       oldestUpload:
         this.uploadedSyllabi.length > 0
           ? Math.min(...this.uploadedSyllabi.map((s) => new Date(s.uploadDate)))
@@ -211,6 +425,40 @@ class SyllabusService {
           ? Math.max(...this.uploadedSyllabi.map((s) => new Date(s.uploadDate)))
           : null,
     };
+  }
+
+  // Migrate local syllabi to database when user logs in
+  async migrateToDatabase() {
+    if (this.storageMode !== "database") {
+      console.log("⚠️ Not in database mode, skipping migration");
+      return { success: false, reason: "Not in database mode" };
+    }
+
+    const localSyllabi = this.uploadedSyllabi.filter(
+      (s) => s.storageMode === "local"
+    );
+
+    if (localSyllabi.length === 0) {
+      console.log("✅ No local syllabi to migrate");
+      return { success: true, migrated: 0 };
+    }
+
+    console.log(`🔄 Migrating ${localSyllabi.length} syllabi to database...`);
+
+    let migratedCount = 0;
+    for (const syllabus of localSyllabi) {
+      try {
+        await this.saveToDatabase(syllabus);
+        migratedCount++;
+      } catch (error) {
+        console.error(`❌ Failed to migrate syllabus ${syllabus.id}:`, error);
+      }
+    }
+
+    this.saveSyllabi();
+    console.log(`✅ Migrated ${migratedCount} syllabi to database`);
+
+    return { success: true, migrated: migratedCount };
   }
 
   // Export syllabi data
@@ -248,10 +496,11 @@ class SyllabusService {
   // Save syllabi to localStorage
   saveSyllabi() {
     try {
-      localStorage.setItem(
-        "smartypants_syllabi",
-        JSON.stringify(this.uploadedSyllabi)
-      );
+      const storageKey = this.isAuthenticated
+        ? `smartypants_syllabi_${this.userId}`
+        : `smartypants_syllabi_${this.sessionId}`;
+
+      localStorage.setItem(storageKey, JSON.stringify(this.uploadedSyllabi));
       console.log("✅ Syllabi saved to localStorage");
     } catch (error) {
       console.error("❌ Failed to save syllabi:", error);
@@ -261,7 +510,11 @@ class SyllabusService {
   // Load syllabi from localStorage
   loadSyllabi() {
     try {
-      const data = localStorage.getItem("smartypants_syllabi");
+      const storageKey = this.isAuthenticated
+        ? `smartypants_syllabi_${this.userId}`
+        : `smartypants_syllabi_${this.sessionId}`;
+
+      const data = localStorage.getItem(storageKey);
       this.uploadedSyllabi = data ? JSON.parse(data) : [];
       console.log(
         `📚 Loaded ${this.uploadedSyllabi.length} syllabi from localStorage`
@@ -321,15 +574,42 @@ class SyllabusService {
       maxFileSizeMB: this.maxFileSize / (1024 * 1024),
       allowedTypes: this.allowedTypes,
       maxSyllabiPerUser: this.maxSyllabiPerUser,
+      storageMode: this.storageMode,
+      isAuthenticated: this.isAuthenticated,
+      sessionId: this.sessionId,
+      userId: this.userId,
     };
+  }
+
+  // Update authentication status (called when user logs in/out)
+  updateAuthStatus(isAuthenticated, userData = null) {
+    this.isAuthenticated = isAuthenticated;
+
+    if (isAuthenticated && userData) {
+      this.userId = userData.id || userData.email;
+      this.storageMode = "database";
+      console.log("🔐 User authenticated, switching to database mode");
+
+      // Migrate existing syllabi to database
+      this.migrateToDatabase();
+    } else {
+      this.userId = null;
+      this.storageMode = "local";
+      console.log("👤 User logged out, switching to local mode");
+    }
+
+    // Reload syllabi with new storage key
+    this.loadSyllabi();
   }
 }
 
 // Create global instance
+console.log("🔧 Creating syllabus service instance...");
 window.syllabusService = new SyllabusService();
 
 // Initialize when page loads
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("📚 Initializing syllabus service on DOM ready...");
   window.syllabusService.init();
 });
 
