@@ -69,7 +69,18 @@ class SyllabusService {
     try {
       // Validate file
       console.log("🔍 Validating file...");
-      this.validateFile(file);
+      const validationResult = this.validateFile(file);
+
+      if (validationResult.isDuplicate) {
+        console.warn("⚠️ Duplicate file detected:", validationResult.message);
+        return {
+          success: false,
+          error: validationResult.message,
+          isDuplicate: true,
+          existingFile: validationResult.existingFile,
+        };
+      }
+
       console.log("✅ File validation passed");
 
       // Create syllabus record
@@ -87,11 +98,7 @@ class SyllabusService {
 
       // Always save to local storage (as cache or primary storage)
       console.log("💾 Saving to local storage...");
-      this.saveToLocalStorage(syllabus);
-
-      // Add to local collection
-      this.uploadedSyllabi.push(syllabus);
-      console.log("📚 Added to local collection");
+      await this.saveToLocalStorage(syllabus);
 
       console.log("✅ Syllabus uploaded successfully:", syllabus);
       return {
@@ -179,20 +186,27 @@ class SyllabusService {
   }
 
   // Save to local storage
-  saveToLocalStorage(syllabus) {
+  async saveToLocalStorage(syllabus) {
     try {
       // Convert file to base64 for localStorage storage
-      const reader = new FileReader();
-      reader.onload = () => {
-        syllabus.fileData = reader.result;
-        syllabus.storageMode = "local";
-        this.saveSyllabi();
-      };
-      reader.readAsDataURL(syllabus.file);
+      const fileData = await this.fileToBase64(syllabus.file);
+      syllabus.fileData = fileData;
+      syllabus.storageMode = "local";
+
+      // Add to local collection first
+      this.uploadedSyllabi.push(syllabus);
+
+      // Then save to localStorage
+      this.saveSyllabi();
+
+      console.log("✅ Syllabus saved to local storage:", syllabus.filename);
     } catch (error) {
       console.error("❌ Failed to save to local storage:", error);
       // Don't throw - just log the error and continue
       syllabus.storageMode = "local";
+
+      // Still add to collection even if file data conversion fails
+      this.uploadedSyllabi.push(syllabus);
       this.saveSyllabi();
     }
   }
@@ -221,13 +235,20 @@ class SyllabusService {
       );
     }
 
-    // Check for duplicate filenames
+    // Check for duplicate filenames - provide better handling
     const existingFile = this.uploadedSyllabi.find(
       (s) => s.filename === file.name
     );
     if (existingFile) {
-      throw new Error("A file with this name already exists");
+      // Instead of throwing error, return info about existing file
+      return {
+        isDuplicate: true,
+        existingFile: existingFile,
+        message: `A file named "${file.name}" already exists. You can replace it or upload with a different name.`,
+      };
     }
+
+    return { isDuplicate: false };
   }
 
   // Create syllabus record
@@ -508,8 +529,18 @@ class SyllabusService {
         ? `smartypants_syllabi_${this.userId}`
         : `smartypants_syllabi_${this.sessionId}`;
 
-      localStorage.setItem(storageKey, JSON.stringify(this.uploadedSyllabi));
-      console.log("✅ Syllabi saved to localStorage");
+      const dataToSave = JSON.stringify(this.uploadedSyllabi);
+      localStorage.setItem(storageKey, dataToSave);
+
+      console.log("✅ Syllabi saved to localStorage:", {
+        storageKey,
+        count: this.uploadedSyllabi.length,
+        dataSize: dataToSave.length,
+        syllabi: this.uploadedSyllabi.map((s) => ({
+          id: s.id,
+          filename: s.filename,
+        })),
+      });
     } catch (error) {
       console.error("❌ Failed to save syllabi:", error);
     }
@@ -527,9 +558,81 @@ class SyllabusService {
       console.log(
         `📚 Loaded ${this.uploadedSyllabi.length} syllabi from localStorage`
       );
+
+      // If authenticated, also try to load from database
+      if (this.isAuthenticated) {
+        this.loadSyllabiFromDatabase();
+      }
     } catch (error) {
       console.error("❌ Failed to load syllabi:", error);
       this.uploadedSyllabi = [];
+    }
+  }
+
+  // Load syllabi from database (for authenticated users)
+  async loadSyllabiFromDatabase() {
+    if (!this.isAuthenticated || !this.userId) {
+      console.log("⚠️ Not authenticated, skipping database load");
+      return;
+    }
+
+    try {
+      console.log("🔄 Loading syllabi from database...");
+
+      const response = await fetch(`/.netlify/functions/list-syllabi`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: this.userId,
+        }),
+      });
+
+      if (!response.ok) {
+        console.warn("⚠️ Failed to load from database:", response.status);
+        return;
+      }
+
+      const data = await response.json();
+      console.log("📥 Database syllabi:", data);
+
+      if (data.success && data.syllabi) {
+        // Merge database syllabi with local ones, avoiding duplicates
+        const databaseSyllabi = data.syllabi.map((dbSyllabus) => ({
+          id: dbSyllabus.id,
+          filename: dbSyllabus.original_name || dbSyllabus.filename,
+          originalName: dbSyllabus.original_name || dbSyllabus.filename,
+          size: dbSyllabus.file_size,
+          type: dbSyllabus.file_type,
+          uploadDate: dbSyllabus.upload_date,
+          lastModified: dbSyllabus.last_modified,
+          status: dbSyllabus.status || "inactive",
+          storageMode: "database",
+          sessionId: this.sessionId,
+          userId: this.userId,
+          url: dbSyllabus.file_url,
+          metadata: {
+            pages: dbSyllabus.metadata?.pages || null,
+            wordCount: dbSyllabus.metadata?.word_count || null,
+            extractedText: dbSyllabus.metadata?.extracted_text || null,
+            subject: dbSyllabus.metadata?.subject || "general",
+          },
+        }));
+
+        // Merge with existing local syllabi, preferring database versions
+        const existingIds = new Set(this.uploadedSyllabi.map((s) => s.id));
+        const newSyllabi = databaseSyllabi.filter(
+          (s) => !existingIds.has(s.id)
+        );
+
+        this.uploadedSyllabi = [...this.uploadedSyllabi, ...newSyllabi];
+
+        console.log(`✅ Loaded ${newSyllabi.length} syllabi from database`);
+        this.saveSyllabi(); // Save merged data to localStorage
+      }
+    } catch (error) {
+      console.error("❌ Failed to load syllabi from database:", error);
     }
   }
 
@@ -586,6 +689,28 @@ class SyllabusService {
     console.log("✅ Syllabus service initialized");
   }
 
+  // Refresh syllabi from all sources
+  async refreshSyllabi() {
+    console.log("🔄 Refreshing syllabi from all sources...");
+
+    // Store current count for comparison
+    const currentCount = this.uploadedSyllabi.length;
+    console.log(`📊 Current syllabi count: ${currentCount}`);
+
+    // Load from local storage (this will update the array)
+    this.loadSyllabi();
+
+    // If authenticated, also load from database
+    if (this.isAuthenticated) {
+      await this.loadSyllabiFromDatabase();
+    }
+
+    console.log(
+      `✅ Refreshed syllabi: ${this.uploadedSyllabi.length} total (was ${currentCount})`
+    );
+    return this.uploadedSyllabi;
+  }
+
   // Get service configuration
   getConfig() {
     return {
@@ -600,6 +725,29 @@ class SyllabusService {
     };
   }
 
+  // Debug function to check localStorage directly
+  debugLocalStorage() {
+    const storageKey = this.isAuthenticated
+      ? `smartypants_syllabi_${this.userId}`
+      : `smartypants_syllabi_${this.sessionId}`;
+
+    const data = localStorage.getItem(storageKey);
+    console.log("🔍 Debug localStorage:", {
+      storageKey,
+      hasData: !!data,
+      dataLength: data ? data.length : 0,
+      parsedData: data ? JSON.parse(data) : null,
+    });
+
+    return {
+      storageKey,
+      hasData: !!data,
+      dataLength: data ? data.length : 0,
+      parsedData: data ? JSON.parse(data) : null,
+      currentCollection: this.uploadedSyllabi,
+    };
+  }
+
   // Update authentication status (called when user logs in/out)
   updateAuthStatus(isAuthenticated, userData = null) {
     this.isAuthenticated = isAuthenticated;
@@ -609,16 +757,19 @@ class SyllabusService {
       this.storageMode = "database";
       console.log("🔐 User authenticated, switching to database mode");
 
+      // Load syllabi with new storage key
+      this.loadSyllabi();
+
       // Migrate existing syllabi to database
       this.migrateToDatabase();
     } else {
       this.userId = null;
       this.storageMode = "local";
       console.log("👤 User logged out, switching to local mode");
-    }
 
-    // Reload syllabi with new storage key
-    this.loadSyllabi();
+      // Reload syllabi with new storage key
+      this.loadSyllabi();
+    }
   }
 }
 
