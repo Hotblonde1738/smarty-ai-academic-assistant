@@ -98,3 +98,52 @@ New-Item -ItemType Directory -Name "new_directory"
 ```
 
 Remember: This is a static site deployed on Netlify. Focus on file editing and provide Windows PowerShell commands when needed.
+
+## Git Commit Message Rules
+
+### Technical but Concise Commit Messages
+
+- **ALWAYS** use technical but concise commit messages
+- **INCLUDE** key technical details that matter for development
+- **FOCUS** on what was implemented or fixed
+- **KEEP** messages under 200 characters when possible
+- **AVOID** overly verbose descriptions
+
+### Commit Message Format
+
+```
+feat: [technical feature description]
+fix: [technical fix description]
+update: [technical update description]
+refactor: [technical refactor description]
+```
+
+### Examples of Good Commit Messages
+
+- `feat: implement Supabase database integration`
+- `feat: add unified syllabus service with dual storage`
+- `fix: resolve CORS issues in API endpoints`
+- `update: improve error handling in payment flow`
+- `refactor: consolidate UI controller logic`
+
+### Examples of Bad Commit Messages (Avoid)
+
+- `feat: implement comprehensive Supabase client integration with proper CORS handling, error management, and detailed logging for debugging and monitoring purposes`
+- `fix: resolve complex async/await promise rejection chain in syllabus service with proper error propagation`
+- `update: refactor entire UI controller architecture with proper event delegation and state management patterns`
+
+### Why This Matters
+
+- Technical details help developers understand changes
+- Concise messages are easier to scan and understand
+- Focus on implementation without being overly verbose
+- Balance between technical accuracy and readability
+
+### When to Use Detailed Messages
+
+- In pull request descriptions
+- In code comments and documentation
+- In development notes
+- When explaining complex technical decisions
+
+Remember: Be technical but concise. Include key implementation details without being verbose.
