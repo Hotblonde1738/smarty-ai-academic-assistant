@@ -1,0 +1,174 @@
+<!-- Main Content Area -->
+<div id="landingPage" class="page-content">
+  <div class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        🤖 SmartyPants-AI
+        <span class="hero-subtitle">Your 24/7 Academic Assistant</span>
+      </h1>
+      <p class="hero-description">
+        Get instant help with essays, homework, tutoring, and test prep. Upload
+        your syllabi for personalized academic support.
+      </p>
+      <div class="hero-actions">
+        <button id="demoButton" class="cta-button primary">🎯 Try Demo</button>
+        <button
+          class="cta-button secondary"
+          onclick="navManager.handleNavigation('pricing')"
+        >
+          Get Started
+        </button>
+      </div>
+    </div>
+    <div class="hero-image">
+      <img
+        src="https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=600"
+        alt="SmartyPants-AI Academic Assistant"
+      />
+    </div>
+  </div>
+
+  <div class="features-section">
+    <h2>Why Choose SmartyPants-AI?</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📚</div>
+        <h3>Syllabus Integration</h3>
+        <p>Upload your course syllabi for personalized academic support</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✍️</div>
+        <h3>Essay Writing</h3>
+        <p>Get help with essays, research papers, and academic writing</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎓</div>
+        <h3>Homework Help</h3>
+        <p>Instant assistance with homework problems and assignments</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📝</div>
+        <h3>Test Prep</h3>
+        <p>Prepare for exams with targeted study materials and practice</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="paymentPage" class="page-content" style="display: none">
+  <div class="payment-container">
+    <div class="payment-header">
+      <h2 id="paymentTitle">Complete Your Subscription</h2>
+      <p id="paymentDescription">Choose your plan and payment method</p>
+    </div>
+
+    <div class="selected-plan-info">
+      <div id="selectedPlan"></div>
+    </div>
+
+    <div class="payment-methods">
+      <h3>Choose Payment Method</h3>
+      <div class="payment-buttons">
+        <button class="payment-button paypal">
+          <span class="payment-icon">💳</span>
+          PayPal
+        </button>
+        <button class="payment-button cashapp">
+          <span class="payment-icon">💰</span>
+          Cash App
+        </button>
+      </div>
+    </div>
+
+    <div class="payment-actions">
+      <button id="backToLandingBtn" class="secondary-button">← Back</button>
+    </div>
+  </div>
+</div>
+
+<div id="chatPage" class="page-content" style="display: none">
+  <div class="chat-container">
+    <div class="chat-header">
+      <h2>💬 Chat with SmartyPants-AI</h2>
+      <p>Ask me anything about your studies!</p>
+    </div>
+
+    <form id="chatForm" class="chat-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="educationLevel">Education Level</label>
+          <select id="educationLevel" name="educationLevel">
+            <option value="high-school">High School</option>
+            <option value="college" selected>College/University</option>
+            <option value="graduate">Graduate School</option>
+            <option value="professional">Professional Development</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="helpType">Help Type</label>
+          <select id="helpType" name="helpType">
+            <option value="general">General Question</option>
+            <option value="essay">Essay Writing</option>
+            <option value="tutoring">Tutoring</option>
+            <option value="homework">Homework Help</option>
+            <option value="test-prep">Test Prep</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="question">Your Question</label>
+        <textarea
+          id="question"
+          name="question"
+          placeholder="Ask me anything about your college coursework..."
+          rows="4"
+          required
+        ></textarea>
+      </div>
+
+      <button type="submit" class="submit-button">
+        🤖 Ask SmartyPants Now!
+      </button>
+    </form>
+
+    <div id="response" class="response-area">
+      <div class="response-placeholder">
+        <h4>💡 SmartyPants will respond here!</h4>
+        <p>
+          Fill out the form above and click "Ask SmartyPants Now!" to get your
+          personalized help.
+        </p>
+      </div>
+    </div>
+
+    <div class="chat-actions">
+      <button id="backToPaymentBtn" class="secondary-button">
+        ← Back to Plans
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay hidden">
+  <div class="loading-content">
+    <div class="loading-spinner"></div>
+    <p>Processing...</p>
+  </div>
+</div>
+
+<!-- Status Messages -->
+<div id="statusMessage"></div>
+
+<!-- PWA Install Banner -->
+<div id="installBanner" class="install-banner hidden">
+  <div class="install-content">
+    <span>📱 Install SmartyPants-AI for quick access</span>
+    <div class="install-actions">
+      <button id="installButton" class="install-btn">Install</button>
+      <button id="dismissInstall" class="dismiss-btn">Dismiss</button>
+    </div>
+  </div>
+</div>

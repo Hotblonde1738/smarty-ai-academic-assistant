@@ -1,0 +1,119 @@
+<!-- Sidebar Content -->
+<div class="sidebar-header">
+  <div class="sidebar-toggle" id="sidebarToggle">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+  <h3 class="sidebar-title">SmartyPants-AI</h3>
+</div>
+
+<div class="sidebar-content">
+  <!-- Authentication Section -->
+  <div id="authSection" class="sidebar-section">
+    <h4>Welcome!</h4>
+    <p>Login to access your personalized experience</p>
+    <div class="auth-buttons">
+      <button id="loginBtn" class="auth-btn login">
+        <span class="action-icon">🔐</span>
+        Login
+      </button>
+      <button id="registerBtn" class="auth-btn register">
+        <span class="action-icon">📝</span>
+        Register
+      </button>
+    </div>
+  </div>
+
+  <!-- Account Section (Hidden by default) -->
+  <div id="accountSection" class="sidebar-section hidden">
+    <div class="user-info">
+      <div class="user-avatar">👤</div>
+      <div class="user-details">
+        <div id="userName" class="user-name">Student User</div>
+        <div id="userEmail" class="user-email">student@example.com</div>
+      </div>
+    </div>
+
+    <div class="plan-info">
+      <div class="plan-details">
+        <span class="plan-label">Plan:</span>
+        <span id="planInfo" class="plan-value">College Plan</span>
+      </div>
+      <div class="plan-details">
+        <span class="plan-label">Price:</span>
+        <span id="priceInfo" class="plan-value">$65/month</span>
+      </div>
+      <div class="plan-details">
+        <span class="plan-label">Next Billing:</span>
+        <span id="nextBilling" class="plan-value">Jan 15, 2025</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="sidebar-section">
+    <h4>Quick Actions</h4>
+    <div class="quick-actions">
+      <button id="quickChatBtn" class="quick-action-btn">
+        <span class="action-icon">💬</span>
+        Quick Chat
+      </button>
+      <button id="quickEssayBtn" class="quick-action-btn">
+        <span class="action-icon">✍️</span>
+        Essay Help
+      </button>
+      <button id="quickTutoringBtn" class="quick-action-btn">
+        <span class="action-icon">🎓</span>
+        Tutoring
+      </button>
+    </div>
+  </div>
+
+  <!-- Syllabus Management -->
+  <div class="sidebar-section">
+    <div class="section-header">
+      <h4>My Syllabi</h4>
+      <button id="uploadSyllabusBtn" class="upload-btn" title="Upload Syllabus">
+        📤
+      </button>
+    </div>
+
+    <div id="syllabusList" class="syllabus-list">
+      <!-- Syllabi will be populated here -->
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="sidebar-section">
+    <h4>Settings</h4>
+    <div class="settings-list">
+      <button id="notificationsBtn" class="settings-btn">
+        <span class="settings-icon">🔔</span>
+        Notifications
+      </button>
+      <button id="emailPrefsBtn" class="settings-btn">
+        <span class="settings-icon">📧</span>
+        Email Preferences
+      </button>
+      <button id="accountSettingsBtn" class="settings-btn">
+        <span class="settings-icon">⚙️</span>
+        Account Settings
+      </button>
+      <button id="logoutBtn" class="settings-btn logout-btn">
+        <span class="settings-icon">🚪</span>
+        Sign Out
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Menu Button -->
+<button id="mobileMenuBtn" class="mobile-menu-btn">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
+
+<!-- Sidebar Overlay for Mobile -->
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
