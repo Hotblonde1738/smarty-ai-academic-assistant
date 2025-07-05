@@ -1,15 +1,21 @@
 [build]
   publish = "public"
-  command = "echo 'Building SmartyPants-AI...'"
+  command = "npm run build"
 
 [build.environment]
   NODE_VERSION = "18"
+  NODE_OPTIONS = "--max-old-space-size=4096"
 
-# Function configuration
+# Function configuration with optimizations
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
   external_node_modules = ["@netlify/functions"]
+  included_files = ["netlify/functions/**/*.ts"]
+
+# Build caching for faster deployments
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
 
 # Enhanced headers to prevent cross-origin blocking
 [[headers]]
