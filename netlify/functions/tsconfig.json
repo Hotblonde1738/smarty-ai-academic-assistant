@@ -3,7 +3,7 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "commonjs",
-    "lib": ["es2020"],
+    "lib": ["es2020", "esnext", "dom"],
     "outDir": "./dist",
     "rootDir": "./",
     "strict": true,
@@ -14,8 +14,14 @@
     "resolveJsonModule": true,
     "declaration": false,
     "sourceMap": false,
-    "noEmit": false
+    "noEmit": false,
+    "incremental": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
   "include": ["*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
 }
