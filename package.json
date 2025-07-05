@@ -5,15 +5,20 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "node index.js",
-    "build": "echo 'Static site ready for deployment'",
+    "dev": "npm run build:ts && npm run serve",
+    "serve": "node dev-server.js",
+    "build": "npm run build:ts && npm run build:functions",
+    "build:ts": "tsc --project tsconfig.json",
+    "build:functions": "tsc --project netlify/functions",
     "type-check": "tsc --noEmit",
-    "build:functions": "tsc --project netlify/functions"
+    "watch": "tsc --watch --project tsconfig.json",
+    "clean": "del public\\js\\services\\*.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.3",
     "express": "^4.18.2",
-    "openai": "^4.28.0"
+    "openai": "^4.28.0",
+    "stripe": "^14.18.0"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -30,6 +35,7 @@
   "devDependencies": {
     "@netlify/functions": "^4.1.8",
     "@types/node": "^24.0.10",
+    "chokidar": "^4.0.3",
     "typescript": "^5.8.3"
   }
 }
