@@ -1,6 +1,9 @@
 # Node modules
 node_modules/
 
+# Cursor rules
+.cursorrules
+
 # Un-tracked helpers (sql,notes,etc)
 _untracked-helpers/
 
@@ -18,6 +21,9 @@ yarn-error.log*
 dist/
 build/
 .out/
+
+# Compiled JavaScript files (generated from TypeScript)
+public/js/services/*.js
 
 # OS-specific files
 .DS_Store
@@ -41,3 +47,4 @@ Thumbs.db
 
 # Local Netlify folder
 .netlify
+.cursorrules
